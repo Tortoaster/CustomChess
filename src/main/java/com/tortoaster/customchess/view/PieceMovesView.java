@@ -41,11 +41,11 @@ public class PieceMovesView extends View implements View.OnTouchListener {
 		
 		setOnTouchListener(this);
 		
-		lightColor = getResources().getColor(R.color.light);
-		darkColor = getResources().getColor(R.color.dark);
+		lightColor = getResources().getColor(R.color.white);
+		darkColor = getResources().getColor(R.color.darkWhite);
 		selectedColor = getResources().getColor(R.color.selected);
 		highlightedColor = getResources().getColor(R.color.highlighted);
-		endangeredColor = getResources().getColor(R.color.endangered);
+		endangeredColor = getResources().getColor(R.color.threatened);
 		markedColor = getResources().getColor(R.color.marked);
 	}
 	
@@ -79,7 +79,7 @@ public class PieceMovesView extends View implements View.OnTouchListener {
 			}
 		}
 		
-		paint.setColor(getResources().getColor(R.color.colorRed));
+		paint.setColor(darkColor);
 		canvas.drawCircle((horizontalMargin + startX * tileSize + tileSize / 2), verticalMargin + startY * tileSize + tileSize / 2, tileSize / 4, paint);
 	}
 	

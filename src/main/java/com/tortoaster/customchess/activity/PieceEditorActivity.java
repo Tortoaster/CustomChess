@@ -131,7 +131,7 @@ public class PieceEditorActivity extends AppCompatActivity {
 			attacks = moves;
 		} else {
 			attacksButton.setEnabled(true);
-			attacksButton.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
+			attacksButton.setTextColor(getResources().getColor(R.color.darkBlack));
 		}
 		
 		calculateValue();

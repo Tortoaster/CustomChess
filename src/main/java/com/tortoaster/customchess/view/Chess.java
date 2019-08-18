@@ -24,11 +24,11 @@ public class Chess extends View implements View.OnTouchListener {
 		
 		setOnTouchListener(this);
 		
-		lightColor = getResources().getColor(R.color.light);
-		darkColor = getResources().getColor(R.color.dark);
+		lightColor = getResources().getColor(R.color.white);
+		darkColor = getResources().getColor(R.color.darkWhite);
 		selectedColor = getResources().getColor(R.color.selected);
 		highlightedColor = getResources().getColor(R.color.highlighted);
-		endangeredColor = getResources().getColor(R.color.endangered);
+		endangeredColor = getResources().getColor(R.color.threatened);
 		markedColor = getResources().getColor(R.color.marked);
 		
 		for(Kind k : Kind.values()) {

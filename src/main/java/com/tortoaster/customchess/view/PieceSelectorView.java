@@ -41,7 +41,7 @@ public class PieceSelectorView extends View {
 			a.recycle();
 		}
 		
-		PAINT.setColor(getResources().getColor(R.color.colorSecondary) & 0x00FFFFFF | 0x40000000);
+		PAINT.setColor(getResources().getColor(R.color.white) & 0x00FFFFFF | 0x40000000);
 	}
 	
 	/**

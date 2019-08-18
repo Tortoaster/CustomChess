@@ -41,8 +41,8 @@ public class BoardEditorView extends View {
 	public BoardEditorView(Context context, @Nullable AttributeSet attrs) {
 		super(context, attrs);
 		
-		lightColor = getResources().getColor(R.color.light);
-		darkColor = getResources().getColor(R.color.dark);
+		lightColor = getResources().getColor(R.color.white);
+		darkColor = getResources().getColor(R.color.darkWhite);
 		
 		for(Kind k : Kind.values()) {
 			k.loadImage(getContext());

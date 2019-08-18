@@ -44,5 +44,4 @@
 	<style name="Image" parent="Default">
 		<item name="android:layout_height">192dp</item>
 	</style>
-
 </resources>

@@ -1,5 +1,4 @@
 <resources>
-    
     <string name="app_name">Custom Chess</string>
     <string name="play">Play</string>
     <string name="board_editor">Board Editor</string>

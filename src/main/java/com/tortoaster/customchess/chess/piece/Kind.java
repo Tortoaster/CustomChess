@@ -158,7 +158,7 @@ public enum Kind {
 		if(this == CUSTOM) return;
 
 		if(this == WALL) {
-			white = black = generateSquare(context.getResources().getColor(R.color.colorPrimaryDark));
+			white = black = generateSquare(context.getResources().getColor(R.color.darkBlack));
 			return;
 		}
 

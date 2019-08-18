@@ -68,8 +68,7 @@
 					<ImageView
 						android:id="@+id/white_image"
 						style="@style/Image"
-						android:contentDescription="@string/white_sprite"
-						android:src="@drawable/chess_icon" />
+						android:contentDescription="@string/white_sprite" />
 				
 				</LinearLayout>
 				
@@ -87,8 +86,7 @@
 					<ImageView
 						android:id="@+id/black_image"
 						style="@style/Image"
-						android:contentDescription="@string/black_sprite"
-						android:src="@drawable/chess_icon" />
+						android:contentDescription="@string/black_sprite" />
 				
 				</LinearLayout>
 			</LinearLayout>
