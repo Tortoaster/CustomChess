@@ -1,0 +1,40 @@
+<resources>
+    
+    <string name="app_name">Custom Chess</string>
+    <string name="play">Play</string>
+    <string name="board_editor">Board Editor</string>
+    <string name="piece_editor">Piece Editor</string>
+    <string name="logo">Logo</string>
+    <string name="human">Human</string>
+    <string name="computer">Computer</string>
+    <string name="vs">● vs ○</string>
+    <string name="default_board">Default Board</string>
+    <string name="computer_strength">Computer strength</string>
+    <string name="go">Go</string>
+    <string name="create_new_board">Create new board</string>
+    <string name="delete">Delete</string>
+    <string name="saved_boards">Saved boards</string>
+    <string name="create_new_piece">Create new piece</string>
+    <string name="saved_pieces">Saved pieces</string>
+    <string name="board_name">Board name</string>
+    <string name="board_width">Board width</string>
+    <string name="board_height">Board height</string>
+    <string name="save_board">Save board</string>
+	<string name="piece_name">Piece name</string>
+	<string name="royal">Royal</string>
+    <string name="capturable">Capturable</string>
+    <string name="same_attacks_as_moves">Same attacks as moves</string>
+    <string name="edit_moves">Edit moves</string>
+    <string name="edit_attacks">Edit Attacks</string>
+	<string name="set_white_sprite">Set white sprite</string>
+    <string name="white_sprite">White sprite</string>
+    <string name="set_black_sprite">Set black sprite</string>
+    <string name="black_sprite">Black sprite</string>
+	<string name="value">Value</string>
+    <string name="save_piece">Save Piece</string>
+	<string name="jumping">Jumping</string>
+    <string name="repeating">Repeating</string>
+    <string name="cancel">Cancel</string>
+    <string name="help">Help</string>
+    <string name="apply">Apply</string>
+</resources>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	tools:context=".activity.BoardEditorActivity">
+	
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical">
+		
+		<LinearLayout style="@style/ButtonList">
+			
+			<EditText
+				android:id="@+id/board_name"
+				style="@style/Default"
+				android:hint="@string/board_name"
+				android:inputType="text" />
+			
+			<TextView
+				android:id="@+id/board_width_txt"
+				style="@style/Default"
+				android:text="@string/board_width" />
+			
+			<SeekBar
+				android:id="@+id/board_width"
+				style="@style/Default"
+				android:max="20"
+				android:progress="4" />
+			
+			<TextView
+				android:id="@+id/board_height_txt"
+				style="@style/Default"
+				android:text="@string/board_height" />
+			
+			<SeekBar
+				android:id="@+id/board_height"
+				style="@style/Default"
+				android:max="20"
+				android:progress="4" />
+		</LinearLayout>
+		
+		<com.tortoaster.customchess.view.BoardEditorView
+			android:id="@+id/board_editor"
+			style="@style/Default" />
+		
+		<LinearLayout
+			style="@style/Default"
+			android:gravity="center"
+			android:orientation="horizontal">
+			
+			<Switch
+				android:id="@+id/black_white"
+				style="@style/Default"
+				android:layout_width="0dp"
+				android:layout_weight="1" />
+			
+			<android.support.v7.widget.RecyclerView
+				android:id="@+id/piece_selector"
+				style="@style/Default"
+				android:layout_width="0dp"
+				android:layout_weight="9"
+				android:orientation="horizontal">
+			
+			</android.support.v7.widget.RecyclerView>
+		
+		</LinearLayout>
+		
+		<Button
+			style="@style/Default"
+			android:onClick="saveBoard"
+			android:text="@string/save_board" />
+	
+	</LinearLayout>
+</ScrollView>

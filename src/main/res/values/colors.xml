@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<color name="black">#4a4c53</color>
+	<color name="darkBlack">#343841</color>
+	<color name="white">#eef7fa</color>
+	<color name="darkWhite">#b6bfc7</color>
+	
+	<color name="selected">#d23af274</color>
+	<color name="highlighted">#d23a8df2</color>
+	<color name="threatened">#d2f23a5c</color>
+	<color name="marked">#d2ffdc2d</color>
+	
+	
+	
+	<color name="colorPrimary">#4a4c53</color>
+	<color name="colorPrimaryDark">#343841</color>
+	<color name="colorSecondary">#eef7fa</color>
+	<color name="colorSecondaryDark">#b6bfc7</color>
+	<color name="colorRed">#f23a5c</color>
+	
+	<color name="light">@color/colorSecondary</color>
+	<color name="dark">@color/colorSecondaryDark</color>
+	<color name="endangered">#d2f23a5c</color>
+</resources>

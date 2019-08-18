@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	package="com.tortoaster.customchess">
+	
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+	
+	<application
+		android:allowBackup="true"
+		android:icon="@mipmap/ic"
+		android:label="@string/app_name"
+		android:roundIcon="@mipmap/ic_round"
+		android:supportsRtl="true"
+		android:theme="@style/AppTheme">
+		
+		<activity
+			android:name="com.tortoaster.customchess.activity.MainActivity"
+			android:screenOrientation="portrait">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
+		<activity
+			android:name="com.tortoaster.customchess.activity.OptionsActivity"
+			android:screenOrientation="portrait" />
+		<activity
+			android:name="com.tortoaster.customchess.activity.BoardSelectorActivity"
+			android:screenOrientation="portrait" />
+		<activity
+			android:name="com.tortoaster.customchess.activity.PieceSelectorActivity"
+			android:screenOrientation="portrait" />
+		<activity
+			android:name="com.tortoaster.customchess.activity.GameActivity"
+			android:screenOrientation="portrait">
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+			</intent-filter>
+		</activity>
+		<activity
+			android:name="com.tortoaster.customchess.activity.BoardEditorActivity"
+			android:screenOrientation="portrait" />
+		<activity
+			android:name="com.tortoaster.customchess.activity.PieceEditorActivity"
+			android:screenOrientation="portrait" />
+		<activity
+			android:name="com.tortoaster.customchess.activity.PieceMovesActivity"
+			android:screenOrientation="portrait" />
+	</application>
+
+</manifest>

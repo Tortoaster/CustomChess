@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:gravity="center"
+	android:orientation="vertical"
+	tools:context=".activity.OptionsActivity">
+	
+	<LinearLayout style="@style/ButtonList">
+		
+		<LinearLayout
+			style="@style/Default"
+			android:orientation="horizontal">
+			
+			<CheckedTextView
+				android:id="@+id/player1"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="2"
+				android:onClick="switchPlayer"
+				android:text="@string/human" />
+			
+			<TextView
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:text="@string/vs" />
+			
+			<CheckedTextView
+				android:id="@+id/player2"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="2"
+				android:checked="true"
+				android:onClick="switchPlayer"
+				android:text="@string/computer" />
+		
+		</LinearLayout>
+		
+		<Button
+			android:id="@+id/board"
+			style="@style/Default"
+			android:onClick="chooseBoard"
+			android:text="@string/default_board" />
+		
+		<TextView
+			style="@style/Title"
+			android:text="@string/computer_strength" />
+		
+		<SeekBar
+			android:id="@+id/strength"
+			style="@style/Default"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" />
+		
+		<Button
+			style="@style/Default"
+			android:onClick="startGame"
+			android:text="@string/go" />
+	</LinearLayout>
+
+</LinearLayout>
