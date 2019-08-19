@@ -7,15 +7,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 import android.widget.Button;
 
 import com.tortoaster.customchess.R;
-import com.tortoaster.customchess.view.ButtonAdapter;
+import com.tortoaster.customchess.view.FileAdapter;
+import com.tortoaster.customchess.view.SwipeToDeleteCallback;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class BoardSelectorActivity extends AppCompatActivity implements Button.OnClickListener {
 	
@@ -25,9 +25,7 @@ public class BoardSelectorActivity extends AppCompatActivity implements Button.O
 	
 	private String lastLoaded;
 	
-	private List<String> files;
-	
-	private RecyclerView.Adapter adapter;
+	private FileAdapter adapter;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -36,33 +34,26 @@ public class BoardSelectorActivity extends AppCompatActivity implements Button.O
 		
 		RecyclerView boards = findViewById(R.id.boards);
 		
-		resultExpected = getIntent().getBooleanExtra("resultExpected", false);
-		
-		files = new ArrayList<>();
-		adapter = new ButtonAdapter(files, this);
-		
-		for(File file: getFilesDir().listFiles()) {
-			String name = file.getName();
-			if(name.startsWith("b_")) files.add(name.substring(2, name.length() - 4));
-		}
-		
 		RecyclerView.LayoutManager manager = new LinearLayoutManager(getApplicationContext());
+		
+		resultExpected = getIntent().getBooleanExtra("resultExpected", false);
+		adapter = new FileAdapter(getFilesDir().listFiles(), "b_", ".txt", this);
 		
 		boards.setLayoutManager(manager);
 		boards.setItemAnimator(new DefaultItemAnimator());
 		boards.setAdapter(adapter);
+		
+		new ItemTouchHelper(new SwipeToDeleteCallback(adapter)).attachToRecyclerView(boards);
 	}
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-		switch(requestCode) {
-			case NEW_BOARD:
-				files.add(intent.getStringExtra("name"));
-				adapter.notifyDataSetChanged();
-				break;
-			case EDIT_BOARD:
-				files.set(files.indexOf(lastLoaded), intent.getStringExtra("name"));
-				adapter.notifyDataSetChanged();
+		if(resultCode == RESULT_OK) {
+			switch(requestCode) {
+				case NEW_BOARD:
+				case EDIT_BOARD:
+					adapter.add(new File(getFilesDir() + File.separator + "b_" + intent.getStringExtra("name") + ".txt"));
+			}
 		}
 	}
 	

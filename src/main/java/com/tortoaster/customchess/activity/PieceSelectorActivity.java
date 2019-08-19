@@ -6,15 +6,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 import android.widget.Button;
 
 import com.tortoaster.customchess.R;
-import com.tortoaster.customchess.view.ButtonAdapter;
+import com.tortoaster.customchess.view.FileAdapter;
+import com.tortoaster.customchess.view.SwipeToDeleteCallback;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class PieceSelectorActivity extends AppCompatActivity implements Button.OnClickListener {
 	
@@ -22,9 +22,7 @@ public class PieceSelectorActivity extends AppCompatActivity implements Button.O
 	
 	private String lastLoaded;
 	
-	private List<String> files;
-	
-	private RecyclerView.Adapter adapter;
+	private FileAdapter adapter;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -33,26 +31,25 @@ public class PieceSelectorActivity extends AppCompatActivity implements Button.O
 		
 		RecyclerView pieces = findViewById(R.id.pieces);
 		
-		files = new ArrayList<>();
-		adapter = new ButtonAdapter(files, this);
-		
-		for(File file : getFilesDir().listFiles()) {
-			String name = file.getName();
-			if(name.startsWith("p_")) files.add(name.substring(2, name.length() - 4));
-		}
-		
 		RecyclerView.LayoutManager manager = new LinearLayoutManager(getApplicationContext());
+		
+		adapter = new FileAdapter(getFilesDir().listFiles(), "p_", ".txt", this);
 		
 		pieces.setLayoutManager(manager);
 		pieces.setItemAnimator(new DefaultItemAnimator());
 		pieces.setAdapter(adapter);
+		
+		new ItemTouchHelper(new SwipeToDeleteCallback(adapter)).attachToRecyclerView(pieces);
 	}
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		if(resultCode == RESULT_OK) {
-			files.add(intent.getStringExtra("name"));
-			adapter.notifyDataSetChanged();
+			switch(requestCode) {
+				case NEW_PIECE:
+				case EDIT_PIECE:
+					adapter.add(new File(getFilesDir() + File.separator + "p_" + intent.getStringExtra("name") + ".txt"));
+			}
 		}
 	}
 	
