@@ -26,47 +26,25 @@ public class PieceMovesActivity extends AppCompatActivity {
 		jumping = findViewById(R.id.jumping);
 		repeating = findViewById(R.id.repeating);
 		
-		String s = getIntent().getStringExtra("given string");
-		pieceMovesView.getMovesFromString(s);
+		pieceMovesView.setData(getIntent().getStringExtra("data"));
 	}
 	
-	/**
-	 * The next selected move is a jumping move
-	 */
 	public void setJumping(View view) {
 		pieceMovesView.setJumping(jumping.isChecked());
 	}
 	
-	/**
-	 * The next selected move is a repeating move
-	 */
 	public void setRepeating(View view) {
 		pieceMovesView.setRepeating(repeating.isChecked());
 	}
 	
-	/**
-	 * Closes the Activity
-	 */
 	public void cancel(View view) {
 		finish();
 	}
 	
-	/**
-	 * Returns all selected moves
-	 */
 	public void apply(View view) {
-		String moves = pieceMovesView.getMoves();
 		Intent result = new Intent();
-		result.putExtra("string", moves);
+		result.putExtra("data", pieceMovesView.getData());
 		setResult(Activity.RESULT_OK, result);
 		finish();
 	}
-	
-	/**
-	 * Sets helpMenu to visible if gone and gone if anything else.
-	 */
-	public void help(View view) {
-	
-	}
-	
 }

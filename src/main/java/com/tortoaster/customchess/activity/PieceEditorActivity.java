@@ -1,16 +1,16 @@
 package com.tortoaster.customchess.activity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Switch;
@@ -18,398 +18,282 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.tortoaster.customchess.R;
+import com.tortoaster.customchess.chess.Move;
+import com.tortoaster.customchess.view.PieceMovesView;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 
 public class PieceEditorActivity extends AppCompatActivity {
 	
-	private static final int resultAreMoves = 0, resultAreAttacks = 1, resultIsWhitePicture = 2, resultIsBlackPicture = 3;
-	private boolean selectedWhitePic, selectedBlackPic, royal, capturable = true, customAttacks;
-	private int value = 0;
+	private static final int GET_MOVES = 0, GET_ATTACKS = 1, GET_LIGHT_IMAGE = 2, GET_DARK_IMAGE = 3;
 	
-	private Bitmap whitePicture = null, blackPicture = null;
+	private boolean lightImageDone, darkImageDone;
 	
-	private String moves = "", attacks = "";
+	private Bitmap lightImage, darkImage;
 	
-	private TextView valueText;
+	private String moveData, attackData;
 	
-	private EditText nameField;
-	
-	private Switch mCapturableSwitch, mRoyalSwitch, mAttackMovesSwitch;
+	private EditText name;
+	private Switch royal, capturable, customAttacks;
+	private Button attacks;
+	private ImageView light, dark;
+	private TextView value;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_piece_editor);
 		
-		nameField = findViewById(R.id.piece_name);
+		moveData = attackData = "";
+		
+		name = findViewById(R.id.piece_name);
+		royal = findViewById(R.id.royal);
+		capturable = findViewById(R.id.capturable);
+		customAttacks = findViewById(R.id.custom_attacks);
+		attacks = findViewById(R.id.attacks);
+		light = findViewById(R.id.light_image);
+		dark = findViewById(R.id.dark_image);
+		value = findViewById(R.id.value);
+		
+		capturable.setChecked(true);
+		attacks.setEnabled(false);
+		
+		royal.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if(royal.isChecked()) {
+					capturable.setChecked(true);
+				}
+				
+				calculateValue();
+			}
+		});
+		
+		capturable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if(!isChecked) {
+					royal.setChecked(false);
+				}
+				
+				calculateValue();
+			}
+		});
+		
+		customAttacks.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if(isChecked) {
+					attacks.setEnabled(true);
+				} else {
+					attacks.setEnabled(false);
+					attackData = moveData;
+				}
+				
+				calculateValue();
+			}
+		});
 		
 		Intent intent = getIntent();
 		String name = intent.getStringExtra("name");
 		
-		if(name != null) loadPiece(name);
-		
-		mCapturableSwitch = findViewById(R.id.capturable);
-		mRoyalSwitch = findViewById(R.id.royal);
-		mAttackMovesSwitch = findViewById(R.id.attack_moves);
-		
-		mCapturableSwitch.setChecked(capturable);
-		mRoyalSwitch.setChecked(royal);
-		valueText = findViewById(R.id.value);
-		calculateValue();
-		
-		if(moves.equals(attacks) && !moves.isEmpty()) {
-			Button attacksButton = findViewById(R.id.attacks_button);
-			
-			mAttackMovesSwitch.setChecked(true);
-			attacksButton.setEnabled(false);
-			attacksButton.setTextColor(Color.GRAY);
-		}
-		
-		findImages(name);
+		if(name != null) load(name);
 	}
 	
-	/**
-	 * Looks for the black and white image of the piece
-	 *
-	 * @param name the name of the piece
-	 */
-	public void findImages(String name) {
-		try {
-			whitePicture = BitmapFactory.decodeStream(openFileInput("w" + name + ".png"));
-			setWhitePicture();
-			selectedWhitePic = true;
-		} catch(IOException e) {
-			whitePicture = null;
-		}
-		try {
-			blackPicture = BitmapFactory.decodeStream(openFileInput("b" + name + ".png"));
-			setBlackPicture();
-			selectedBlackPic = true;
-		} catch(IOException e) {
-			blackPicture = null;
-		}
-	}
-	
-	public void setRoyal(View view) {
-		royal = mRoyalSwitch.isChecked();
-		
-		if(!capturable && royal) {
-			capturable = true;
-			mCapturableSwitch.setChecked(true);
-			Toast.makeText(this, "no", Toast.LENGTH_SHORT).show();
-		}
-		calculateValue();
-	}
-	
-	public void setCapturable(View view) {
-		capturable = mCapturableSwitch.isChecked();
-		if(!capturable && royal) {
-			royal = false;
-			mRoyalSwitch.setChecked(false);
-			Toast.makeText(this, "no", Toast.LENGTH_SHORT).show();
-		}
-		
-		calculateValue();
-	}
-	
-	/**
-	 * When enabled, the attacks of this piece will be the same as its normal moves.
-	 */
-	public void setAttackMoves(View view) {
-		customAttacks = ((CheckBox) view).isChecked();
-		Button attacksButton = findViewById(R.id.attacks_button);
-		if(customAttacks) {
-			attacksButton.setEnabled(false);
-			attacksButton.setTextColor(Color.GRAY);
-			attacks = moves;
-		} else {
-			attacksButton.setEnabled(true);
-			attacksButton.setTextColor(getResources().getColor(R.color.darkBlack));
-		}
-		
-		calculateValue();
-	}
-	
-	/**
-	 * starts the activity that receives the moves of the piece
-	 */
-	public void makeMoves(View view) {
+	public void setMoves(View view) {
 		Intent intent = new Intent(this, PieceMovesActivity.class);
-		intent.putExtra("given string", moves);
-		startActivityForResult(intent, resultAreMoves);
+		intent.putExtra("data", moveData);
+		startActivityForResult(intent, GET_MOVES);
 	}
 	
-	/**
-	 * starts the activity that receives the attacks of the piece
-	 */
-	public void makeAttacks(View view) {
+	public void setAttacks(View view) {
 		Intent intent = new Intent(this, PieceMovesActivity.class);
-		intent.putExtra("given string", attacks);
-		startActivityForResult(intent, resultAreAttacks);
+		intent.putExtra("data", attackData);
+		startActivityForResult(intent, GET_ATTACKS);
 	}
 	
-	/**
-	 * Starts the activity that receives the white picture of the piece
-	 */
-	public void getWhitePicture(View view) {
-		Intent intent = new Intent();
-		intent.setType("image/*");
-		intent.setAction(Intent.ACTION_GET_CONTENT);
-		startActivityForResult(Intent.createChooser(intent, "Select Picture"), resultIsWhitePicture);
+	public void setLightImage(View view) {
+		Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
+		getIntent.setType("image/*");
+		
+		Intent pickIntent = new Intent(Intent.ACTION_PICK);
+		pickIntent.setDataAndType(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+		
+		Intent chooserIntent = Intent.createChooser(getIntent, "Select Image");
+		chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] {pickIntent});
+		
+		startActivityForResult(chooserIntent, GET_LIGHT_IMAGE);
 	}
 	
-	/**
-	 * Starts the activity that receives the black picture of the piece
-	 */
-	public void getBlackPicture(View view) {
-		Intent intent = new Intent();
-		intent.setType("image/*");
-		intent.setAction(Intent.ACTION_GET_CONTENT);
-		startActivityForResult(Intent.createChooser(intent, "Select Picture"), resultIsBlackPicture);
+	public void setDarkImage(View view) {
+		Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
+		getIntent.setType("image/*");
+		
+		Intent pickIntent = new Intent(Intent.ACTION_PICK);
+		pickIntent.setDataAndType(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+		
+		Intent chooserIntent = Intent.createChooser(getIntent, "Select Image");
+		chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] {pickIntent});
+		
+		startActivityForResult(chooserIntent, GET_DARK_IMAGE);
 	}
 	
-	/**
-	 * shows the whitePicture on screen
-	 */
-	public void setWhitePicture() {
-		ImageView white = findViewById(R.id.white_image);
-		if(whitePicture != null) {
-			white.setImageBitmap(whitePicture);
+	public void displayLightImage() {
+		if(lightImage != null) {
+			light.setImageBitmap(lightImage);
 		}
 	}
 	
-	/**
-	 * Calculates what the custom piece is currently worth approximately.
-	 */
+	public void displayDarkImage() {
+		if(darkImage != null) {
+			dark.setImageBitmap(darkImage);
+		}
+	}
+	
+	@SuppressLint("SetTextI18n")
 	public void calculateValue() {
-		String[] movesList = new String[0];
-		String[] attacksList = new String[0];
+		int score = 0;
 		
-		value = 0;
-		
-		if(!moves.equals(""))
-			movesList = moves.split(", ");
-		if(!attacks.equals(""))
-			attacksList = attacks.split(", ");
-		if(royal)
-			value = value + 11;
-		if(!capturable)
-			value = value - 5;
-		if(movesList.length > 0)
-			value = value + parseArray(movesList);
-		if(attacksList.length > 0)
-			value = value + parseArray(attacksList);
-		
-		valueText.setText(value + "");
-	}
-	
-	/**
-	 * shows the blackPicture on screen
-	 */
-	public void setBlackPicture() {
-		ImageView black = findViewById(R.id.black_image);
-		if(blackPicture != null) {
-			black.setImageBitmap(blackPicture);
-		}
-	}
-	
-	/**
-	 * @param array an array of moves
-	 * @return a value that corresponds to the contents of the array
-	 */
-	public int parseArray(String[] array) {
-		int calculation = 0;
-		
-		for(String move : array) {
-			int moveValue = 0;
-			System.out.println(move);
-			String[] values = move.split(" ");
-			int x = Integer.parseInt(values[0]);
-			int y = Integer.parseInt(values[1]);
-			boolean repeating = !(values[2].equals("0"));
-			boolean jumping = !(values[3].equals("0"));
-			
-			if(x == 0)
-				moveValue = moveValue + Math.abs(y);
-			else if(y == 0)
-				moveValue = moveValue + Math.abs(x);
-			else moveValue = moveValue + Math.abs(x * y);
-			if(repeating)
-				moveValue = (moveValue * 8) + 8;
-			if(jumping)
-				moveValue = (int) Math.round(moveValue * 1.5);
-			
-			calculation += moveValue;
+		for(Move m : PieceMovesView.translateData(moveData)) {
+			score += Math.sqrt(m.getDeltaX() * m.getDeltaX() + m.getDeltaY() * m.getDeltaY()) * (m.isJumping() ? 1.5 : 1) * (m.isRepeating() ? 2 : 1);
 		}
 		
-		return calculation / 8;
+		for(Move m : PieceMovesView.translateData(attackData)) {
+			score += 1.5 * Math.sqrt(m.getDeltaX() * m.getDeltaX() + m.getDeltaY() * m.getDeltaY()) * (m.isJumping() ? 1.5 : 1) * (m.isRepeating() ? 2 : 1);
+		}
+		
+		if(royal.isChecked()) score = score + 11;
+		
+		value.setText(Integer.toString(score));
 	}
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if(requestCode == resultAreMoves && resultCode == RESULT_OK)
-			moves = data.getStringExtra("string");
-		else if(requestCode == resultAreAttacks && resultCode == RESULT_OK)
-			attacks = data.getStringExtra("string");
-		else if(requestCode == resultIsWhitePicture && resultCode == RESULT_OK) {
-			selectedWhitePic = true;
-			Uri uri = data.getData();
-			try {
-				whitePicture = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-				setWhitePicture();
-			} catch(IOException e) {
-				e.printStackTrace();
-			}
-		} else if(requestCode == resultIsBlackPicture && resultCode == RESULT_OK) {
-			selectedBlackPic = true;
-			Uri uri = data.getData();
-			try {
-				blackPicture = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-				setBlackPicture();
-			} catch(IOException e) {
-				e.printStackTrace();
-			}
-		}
-		
-	}
-	
-	/**
-	 * Create a txt with the properties of the saved piece. Saves the given images for the piece.
-	 */
-	public void makePiece(View view) {
-		if(nameField.getText().toString().trim().isEmpty()) {
-			Toast.makeText(this, "no", Toast.LENGTH_SHORT).show();
-		} else if(nameField.getText().toString().contains(",")) {
-			Toast.makeText(this, "no comma", Toast.LENGTH_SHORT).show();
-		} else if(!selectedWhitePic || !selectedBlackPic) {
-			Toast.makeText(this, "pics or it didn't happen", Toast.LENGTH_SHORT).show();
-		} else {
-			String name = "p_" + nameField.getText().toString() + ".txt";
-			
-			if(mAttackMovesSwitch.isChecked()) attacks = moves;
-			
-			String content = value + "|" + royal + "|" + capturable + "|" + moves + "|" + attacks + "|";
-			
-			FileOutputStream fos = null;
-			
-			try {
-				fos = openFileOutput(name, MODE_PRIVATE);
-				fos.write(content.getBytes());
-				Toast.makeText(this, "dun", Toast.LENGTH_SHORT).show();
-				// This sleep is because otherwise the finish is to quick after the message.
-				try {
-					Thread.sleep(500);
-				} catch(InterruptedException e) {
-					e.printStackTrace();
-				}
-				finish();
-			} catch(IOException e) {
-				Toast.makeText(this, "oh sh*t", Toast.LENGTH_SHORT).show();
-				e.printStackTrace();
-			} finally {
-				if(fos != null) {
+		if(resultCode == RESULT_OK) {
+			switch(requestCode) {
+				case GET_MOVES:
+					moveData = data.getStringExtra("data");
+					calculateValue();
+					break;
+				case GET_ATTACKS:
+					attackData = data.getStringExtra("data");
+					calculateValue();
+					break;
+				case GET_LIGHT_IMAGE:
 					try {
-						fos.close();
+						Uri uri = data.getData();
+						
+						lightImage = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+						lightImageDone = true;
+						
+						displayLightImage();
 					} catch(IOException e) {
 						e.printStackTrace();
 					}
-				}
-			}
-			FileOutputStream outW = null;
-			try {
-				outW = openFileOutput("w" + nameField.getText().toString() + ".png", MODE_PRIVATE);
-				whitePicture.compress(Bitmap.CompressFormat.PNG, 100, outW);
-			} catch(Exception e) {
-				e.printStackTrace();
-			} finally {
-				try {
-					if(outW != null) {
-						outW.close();
+					break;
+				case GET_DARK_IMAGE:
+					try {
+						Uri uri = data.getData();
+						
+						darkImage = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+						darkImageDone = true;
+						
+						displayDarkImage();
+					} catch(IOException e) {
+						e.printStackTrace();
 					}
-				} catch(IOException e) {
-					e.printStackTrace();
-				}
-			}
-			FileOutputStream outB = null;
-			try {
-				outB = openFileOutput("b" + nameField.getText().toString() + ".png", MODE_PRIVATE);
-				blackPicture.compress(Bitmap.CompressFormat.PNG, 100, outB);
-			} catch(Exception e) {
-				e.printStackTrace();
-			} finally {
-				try {
-					if(outB != null) {
-						outB.close();
-					}
-				} catch(IOException e) {
-					e.printStackTrace();
-				}
-			}
-			
-			File[] files = getFilesDir().listFiles();
-			Arrays.sort(files);
-			
-			for(File f : files) {
-				System.out.println("Name:" + f.getName());
 			}
 		}
 	}
 	
-	/**
-	 * receive all the saved properties of the piece
-	 *
-	 * @param name the name of the given piece
-	 */
-	public void loadPiece(String name) {
-		nameField.setText(name);
+	public void save(View view) {
+		boolean royal = this.royal.isChecked();
+		boolean capturable = this.capturable.isChecked();
+		int value = Integer.parseInt(this.value.getText().toString());
+		String name = this.name.getText().toString().trim();
 		
-		FileInputStream fis = null;
+		if(name.isEmpty()) {
+			Toast.makeText(this, "Please enter a name", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		
+		if(name.contains("\n")) {
+			Toast.makeText(this, "This name contains forbidden characters", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		
+		if(!lightImageDone || !darkImageDone) {
+			Toast.makeText(this, "Please provide two images", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		
+		String content = value + "\n" + (royal ? 1 : 0) + "\n" + (capturable ? 1 : 0) + "\n" + moveData + "\n" + attackData + "\n";
+		
+		try {
+			FileOutputStream stream = openFileOutput("p_" + name + ".txt", MODE_PRIVATE);
+			stream.write(content.getBytes());
+			stream.close();
+			
+			stream = openFileOutput("l_" + name + ".png", MODE_PRIVATE);
+			lightImage.compress(Bitmap.CompressFormat.PNG, 100, stream);
+			stream.close();
+			
+			stream = openFileOutput("d_" + name + ".png", MODE_PRIVATE);
+			darkImage.compress(Bitmap.CompressFormat.PNG, 100, stream);
+			stream.close();
+			
+			Intent intent = new Intent();
+			intent.putExtra("name", name);
+			setResult(RESULT_OK, intent);
+			finish();
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void load(String name) {
 		StringBuilder builder = new StringBuilder();
 		
 		try {
-			fis = openFileInput("p_" + name + ".txt");
-			InputStreamReader fus = new InputStreamReader(fis);
-			BufferedReader br = new BufferedReader(fus);
+			FileInputStream stream = openFileInput("p_" + name + ".txt");
+			BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 			String line;
 			
-			while((line = br.readLine()) != null) {
-				builder.append(line).append("\n");
+			while((line = reader.readLine()) != null) {
+				builder.append(line).append('\n');
 			}
 		} catch(IOException e) {
 			e.printStackTrace();
-		} finally {
-			if(fis != null) {
-				try {
-					fis.close();
-				} catch(IOException e) {
-					e.printStackTrace();
-				}
-			}
 		}
 		
 		String content = builder.toString();
 		
-		String[] lines = content.split("\\|");
+		String[] lines = content.split("\n");
 		
-		value = Integer.parseInt(lines[0]);
-		royal = Boolean.parseBoolean(lines[1]);
-		capturable = Boolean.parseBoolean(lines[2]);
-		moves = lines[3];
-		attacks = lines[4];
-	}
-	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		if(customAttacks)
-			attacks = moves;
-		calculateValue();
+		this.name.setText(name);
+		value.setText(lines[0]);
+		royal.setChecked(Integer.parseInt(lines[1]) != 0);
+		capturable.setChecked(Integer.parseInt(lines[2]) != 0);
+		moveData = lines[3];
+		attackData = lines[4];
+		
+		customAttacks.setChecked(moveData.equals(attackData));
+		attacks.setEnabled(customAttacks.isChecked());
+		
+		try {
+			lightImage = BitmapFactory.decodeStream(openFileInput("l_" + name + ".png"));
+			lightImageDone = true;
+			displayLightImage();
+			
+			darkImage = BitmapFactory.decodeStream(openFileInput("d_" + name + ".png"));
+			darkImageDone = true;
+			displayDarkImage();
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

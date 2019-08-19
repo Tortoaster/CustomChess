@@ -22,7 +22,7 @@
 	<string name="piece_name">Piece name</string>
 	<string name="royal">Royal</string>
     <string name="capturable">Capturable</string>
-    <string name="same_attacks_as_moves">Same attacks as moves</string>
+    <string name="custom_attacks">Custom attacks</string>
     <string name="edit_moves">Edit moves</string>
     <string name="edit_attacks">Edit Attacks</string>
 	<string name="set_white_sprite">Set white sprite</string>

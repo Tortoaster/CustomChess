@@ -21,31 +21,27 @@
 			<Switch
 				android:id="@+id/royal"
 				style="@style/Default"
-				android:onClick="setRoyal"
 				android:text="@string/royal" />
 			
 			<Switch
 				android:id="@+id/capturable"
 				style="@style/Default"
-				android:checked="true"
-				android:onClick="setCapturable"
 				android:text="@string/capturable" />
 			
 			<Switch
-				android:id="@+id/attack_moves"
+				android:id="@+id/custom_attacks"
 				style="@style/Default"
-				android:onClick="setAttackMoves"
-				android:text="@string/same_attacks_as_moves" />
+				android:text="@string/custom_attacks" />
 			
 			<Button
 				style="@style/Default"
-				android:onClick="makeMoves"
+				android:onClick="setMoves"
 				android:text="@string/edit_moves" />
 			
 			<Button
-				android:id="@+id/attacks_button"
+				android:id="@+id/attacks"
 				style="@style/Default"
-				android:onClick="makeAttacks"
+				android:onClick="setAttacks"
 				android:text="@string/edit_attacks" />
 			
 			<LinearLayout
@@ -62,11 +58,11 @@
 					
 					<Button
 						style="@style/Default"
-						android:onClick="getWhitePicture"
+						android:onClick="setLightImage"
 						android:text="@string/set_white_sprite" />
 					
 					<ImageView
-						android:id="@+id/white_image"
+						android:id="@+id/light_image"
 						style="@style/Image"
 						android:contentDescription="@string/white_sprite" />
 				
@@ -80,11 +76,11 @@
 					
 					<Button
 						style="@style/Default"
-						android:onClick="getBlackPicture"
+						android:onClick="setDarkImage"
 						android:text="@string/set_black_sprite" />
 					
 					<ImageView
-						android:id="@+id/black_image"
+						android:id="@+id/dark_image"
 						style="@style/Image"
 						android:contentDescription="@string/black_sprite" />
 				
@@ -112,7 +108,7 @@
 			
 			<Button
 				style="@style/Default"
-				android:onClick="makePiece"
+				android:onClick="save"
 				android:text="@string/save_piece" />
 		</LinearLayout>
 	</LinearLayout>

@@ -21,6 +21,17 @@ public class Move {
 		this.jumping = jumping;
 	}
 	
+	@Override
+	public boolean equals(Object o) {
+		if(o instanceof Move) {
+			Move m = (Move) o;
+			
+			return getDeltaX() == m.getDeltaX() && getDeltaY() == m.getDeltaY();
+		}
+		
+		return false;
+	}
+	
 	public int getDeltaX() {
 		return dX;
 	}

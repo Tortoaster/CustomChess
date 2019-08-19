@@ -3,14 +3,26 @@ package com.tortoaster.customchess.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
 
 import com.tortoaster.customchess.R;
-import com.tortoaster.customchess.view.FileAdapter;
+import com.tortoaster.customchess.view.ButtonAdapter;
 
-public class PieceSelectorActivity extends AppCompatActivity implements RecyclerView.OnClickListener {
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+public class PieceSelectorActivity extends AppCompatActivity implements Button.OnClickListener {
+	
+	private static final int NEW_PIECE = 1, EDIT_PIECE = 2;
+	
+	private String lastLoaded;
+	
+	private List<String> files;
 	
 	private RecyclerView.Adapter adapter;
 	
@@ -21,14 +33,27 @@ public class PieceSelectorActivity extends AppCompatActivity implements Recycler
 		
 		RecyclerView pieces = findViewById(R.id.pieces);
 		
-		adapter = new FileAdapter(getFilesDir().listFiles(), "p_", ".txt");
+		files = new ArrayList<>();
+		adapter = new ButtonAdapter(files, this);
 		
+		for(File file : getFilesDir().listFiles()) {
+			String name = file.getName();
+			if(name.startsWith("p_")) files.add(name.substring(2, name.length() - 4));
+		}
+		
+		RecyclerView.LayoutManager manager = new LinearLayoutManager(getApplicationContext());
+		
+		pieces.setLayoutManager(manager);
+		pieces.setItemAnimator(new DefaultItemAnimator());
 		pieces.setAdapter(adapter);
 	}
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-		adapter.notifyDataSetChanged();
+		if(resultCode == RESULT_OK) {
+			files.add(intent.getStringExtra("name"));
+			adapter.notifyDataSetChanged();
+		}
 	}
 	
 	@Override
@@ -37,13 +62,15 @@ public class PieceSelectorActivity extends AppCompatActivity implements Recycler
 	}
 	
 	public void loadPiece(String name) {
+		lastLoaded = name;
+		
 		Intent intent = new Intent(this, PieceEditorActivity.class);
 		intent.putExtra("name", name);
-		startActivity(intent);
+		startActivityForResult(intent, EDIT_PIECE);
 	}
 	
 	public void newPiece(View view) {
 		Intent intent = new Intent(this, PieceEditorActivity.class);
-		startActivity(intent);
+		startActivityForResult(intent, NEW_PIECE);
 	}
 }
