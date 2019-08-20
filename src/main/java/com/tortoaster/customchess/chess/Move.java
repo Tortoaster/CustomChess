@@ -11,10 +11,10 @@ public class Move {
 	}
 	
 	public Move(int dX, int dY, boolean repeating) {
-		this(dX, dY, repeating, false);
+		this(dX, dY, false, repeating);
 	}
 	
-	public Move(int dX, int dY, boolean repeating, boolean jumping) {
+	public Move(int dX, int dY, boolean jumping, boolean repeating) {
 		this.dX = dX;
 		this.dY = dY;
 		this.repeating = repeating;

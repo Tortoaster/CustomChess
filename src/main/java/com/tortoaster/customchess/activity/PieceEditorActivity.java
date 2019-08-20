@@ -166,11 +166,11 @@ public class PieceEditorActivity extends AppCompatActivity {
 		double score = 0;
 		
 		for(Move m : PieceMovesView.translateData(moveData)) {
-			score += Math.sqrt(m.getDeltaX() * m.getDeltaX() + m.getDeltaY() * m.getDeltaY()) * (m.isJumping() ? 1.5 : 1) * (m.isRepeating() ? 2 : 1);
+			score += 0.10 * Math.sqrt(m.getDeltaX() * m.getDeltaX() + m.getDeltaY() * m.getDeltaY()) * (m.isJumping() ? 1.5 : 1) * (m.isRepeating() ? 4 : 1);
 		}
 		
 		for(Move m : PieceMovesView.translateData(attackData)) {
-			score += 1.5 * Math.sqrt(m.getDeltaX() * m.getDeltaX() + m.getDeltaY() * m.getDeltaY()) * (m.isJumping() ? 1.5 : 1) * (m.isRepeating() ? 2 : 1);
+			score += 0.25 * Math.sqrt(m.getDeltaX() * m.getDeltaX() + m.getDeltaY() * m.getDeltaY()) * (m.isJumping() ? 1.5 : 1) * (m.isRepeating() ? 4 : 1);
 		}
 		
 		if(royal.isChecked()) score = score + 11;
@@ -184,11 +184,17 @@ public class PieceEditorActivity extends AppCompatActivity {
 			switch(requestCode) {
 				case GET_MOVES:
 					moveData = data.getStringExtra("data");
+					
+					if(!customAttacks.isChecked()) attackData = moveData;
+					
 					calculateValue();
+					
 					break;
 				case GET_ATTACKS:
 					attackData = data.getStringExtra("data");
+					
 					calculateValue();
+					
 					break;
 				case GET_LIGHT_IMAGE:
 					try {
