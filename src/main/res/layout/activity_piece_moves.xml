@@ -11,7 +11,7 @@
 		android:id="@+id/piece_moves"
 		style="@style/Default" />
 	
-	<LinearLayout style="@style/ButtonList">
+	<LinearLayout style="@style/SettingList">
 		
 		<Switch
 			android:id="@+id/jumping"

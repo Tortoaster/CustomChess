@@ -10,7 +10,7 @@
 		android:layout_height="wrap_content"
 		android:orientation="vertical">
 		
-		<LinearLayout style="@style/ButtonList">
+		<LinearLayout style="@style/SettingList">
 			
 			<EditText
 				android:id="@+id/board_name"

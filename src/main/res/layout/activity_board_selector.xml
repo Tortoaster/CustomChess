@@ -7,7 +7,7 @@
 	android:orientation="vertical"
 	tools:context=".activity.BoardSelectorActivity">
 	
-	<LinearLayout style="@style/ButtonList">
+	<LinearLayout style="@style/SettingList">
 		
 		<Button
 			style="@style/Default"

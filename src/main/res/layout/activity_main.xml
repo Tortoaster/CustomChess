@@ -17,7 +17,7 @@
 		android:contentDescription="@string/logo"
 		android:src="@drawable/chess_icon" />
 	
-	<LinearLayout style="@style/ButtonList">
+	<LinearLayout style="@style/SettingList">
 		
 		<Button
 			style="@style/Default"

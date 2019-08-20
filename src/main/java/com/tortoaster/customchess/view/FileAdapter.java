@@ -11,6 +11,8 @@ import com.tortoaster.customchess.R;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class FileAdapter extends RecyclerView.Adapter {
@@ -30,7 +32,7 @@ public class FileAdapter extends RecyclerView.Adapter {
 		}
 	}
 	
-	private final String prefix, postfix;
+	private final String prefix, suffix;
 	
 	private final List<File> files;
 	
@@ -38,12 +40,14 @@ public class FileAdapter extends RecyclerView.Adapter {
 	
 	public FileAdapter(File[] unfiltered, String prefix, String suffix, View.OnClickListener listener) {
 		this.prefix = prefix;
-		this.postfix = suffix;
+		this.suffix = suffix;
 		this.listener = listener;
 		
 		files = new ArrayList<>();
 		
-		for(File f: unfiltered) {
+		Arrays.sort(unfiltered);
+		
+		for(File f : unfiltered) {
 			String name = f.getName();
 			
 			if(name.startsWith(prefix) && name.endsWith(suffix)) files.add(f);
@@ -64,7 +68,7 @@ public class FileAdapter extends RecyclerView.Adapter {
 	public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 		String name = files.get(position).getName();
 		
-		((FileViewHolder) holder).getButton().setText(name.substring(prefix.length(), name.length() - postfix.length()));
+		((FileViewHolder) holder).getButton().setText(name.substring(prefix.length(), name.length() - suffix.length()));
 	}
 	
 	@Override
@@ -73,13 +77,38 @@ public class FileAdapter extends RecyclerView.Adapter {
 	}
 	
 	public void add(File file) {
-		files.add(file);
-		notifyDataSetChanged();
+		int index = -Collections.binarySearch(files, file) - 1;
+		
+		if(index >= 0) {
+			files.add(index, file);
+			
+			notifyItemInserted(index);
+		}
+	}
+	
+	public void replace(File old, File replace) {
+		int oldIndex = files.indexOf(old);
+		
+		files.remove(oldIndex);
+		
+		notifyItemRemoved(oldIndex);
+		
+		old.renameTo(replace);
+		
+		int newIndex = -Collections.binarySearch(files, replace) - 1;
+		
+		if(newIndex >= 0) {
+			files.add(newIndex, replace);
+			
+			notifyItemInserted(newIndex);
+		}
 	}
 	
 	public void remove(int index) {
 		File file = files.remove(index);
+		
 		file.delete();
-		notifyDataSetChanged();
+		
+		notifyItemRemoved(index);
 	}
 }

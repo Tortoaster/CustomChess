@@ -23,8 +23,6 @@ public class BoardSelectorActivity extends AppCompatActivity implements Button.O
 	
 	private boolean resultExpected;
 	
-	private String lastLoaded;
-	
 	private FileAdapter adapter;
 	
 	@Override
@@ -43,7 +41,7 @@ public class BoardSelectorActivity extends AppCompatActivity implements Button.O
 		boards.setItemAnimator(new DefaultItemAnimator());
 		boards.setAdapter(adapter);
 		
-		new ItemTouchHelper(new SwipeToDeleteCallback(adapter)).attachToRecyclerView(boards);
+		new ItemTouchHelper(new SwipeToDeleteCallback(this, adapter)).attachToRecyclerView(boards);
 	}
 	
 	@Override
@@ -73,8 +71,6 @@ public class BoardSelectorActivity extends AppCompatActivity implements Button.O
 	}
 	
 	public void loadBoard(String name) {
-		lastLoaded = name;
-		
 		Intent intent = new Intent(this, BoardEditorActivity.class);
 		intent.putExtra("name", name);
 		startActivity(intent);

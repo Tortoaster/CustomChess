@@ -39,10 +39,12 @@ public class PieceEditorActivity extends AppCompatActivity {
 	
 	private EditText name;
 	private Switch royal, capturable, customAttacks;
+	private TextView royalHint, capturableHint, customAttacksHint;
 	private Button attacks;
 	private ImageView light, dark;
 	private TextView value;
 	
+	@SuppressLint("SetTextI18n")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -54,6 +56,9 @@ public class PieceEditorActivity extends AppCompatActivity {
 		royal = findViewById(R.id.royal);
 		capturable = findViewById(R.id.capturable);
 		customAttacks = findViewById(R.id.custom_attacks);
+		royalHint = findViewById(R.id.royal_hint);
+		capturableHint = findViewById(R.id.capturable_hint);
+		customAttacksHint = findViewById(R.id.custom_attacks_hint);
 		attacks = findViewById(R.id.attacks);
 		light = findViewById(R.id.light_image);
 		dark = findViewById(R.id.dark_image);
@@ -61,6 +66,7 @@ public class PieceEditorActivity extends AppCompatActivity {
 		
 		capturable.setChecked(true);
 		attacks.setEnabled(false);
+		value.setText(Integer.toString(0));
 		
 		royal.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 			@Override
@@ -91,10 +97,11 @@ public class PieceEditorActivity extends AppCompatActivity {
 					attacks.setEnabled(true);
 				} else {
 					attacks.setEnabled(false);
+					
 					attackData = moveData;
+					
+					calculateValue();
 				}
-				
-				calculateValue();
 			}
 		});
 		
@@ -156,7 +163,7 @@ public class PieceEditorActivity extends AppCompatActivity {
 	
 	@SuppressLint("SetTextI18n")
 	public void calculateValue() {
-		int score = 0;
+		double score = 0;
 		
 		for(Move m : PieceMovesView.translateData(moveData)) {
 			score += Math.sqrt(m.getDeltaX() * m.getDeltaX() + m.getDeltaY() * m.getDeltaY()) * (m.isJumping() ? 1.5 : 1) * (m.isRepeating() ? 2 : 1);
@@ -168,7 +175,7 @@ public class PieceEditorActivity extends AppCompatActivity {
 		
 		if(royal.isChecked()) score = score + 11;
 		
-		value.setText(Integer.toString(score));
+		value.setText(Integer.toString((int) Math.round(score)));
 	}
 	
 	@Override
@@ -215,6 +222,8 @@ public class PieceEditorActivity extends AppCompatActivity {
 		boolean capturable = this.capturable.isChecked();
 		int value = Integer.parseInt(this.value.getText().toString());
 		String name = this.name.getText().toString().trim();
+		
+		if(!customAttacks.isChecked()) attackData = moveData;
 		
 		if(name.isEmpty()) {
 			Toast.makeText(this, "Please enter a name", Toast.LENGTH_SHORT).show();
@@ -278,22 +287,62 @@ public class PieceEditorActivity extends AppCompatActivity {
 		value.setText(lines[0]);
 		royal.setChecked(Integer.parseInt(lines[1]) != 0);
 		capturable.setChecked(Integer.parseInt(lines[2]) != 0);
-		moveData = lines[3];
-		attackData = lines[4];
+		if(lines.length > 3) moveData = lines[3];
+		if(lines.length > 4) attackData = lines[4];
 		
-		customAttacks.setChecked(moveData.equals(attackData));
+		customAttacks.setChecked(!moveData.equals(attackData));
 		attacks.setEnabled(customAttacks.isChecked());
 		
 		try {
-			lightImage = BitmapFactory.decodeStream(openFileInput("l_" + name + ".png"));
-			lightImageDone = true;
-			displayLightImage();
+			FileInputStream stream = openFileInput("l_" + name + ".png");
 			
-			darkImage = BitmapFactory.decodeStream(openFileInput("d_" + name + ".png"));
+			lightImage = BitmapFactory.decodeStream(stream);
+			
+			stream.close();
+			
+			lightImageDone = true;
+			
+			displayLightImage();
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			FileInputStream stream = openFileInput("d_" + name + ".png");
+			
+			darkImage = BitmapFactory.decodeStream(stream);
+			
+			stream.close();
+			
 			darkImageDone = true;
+			
 			displayDarkImage();
 		} catch(IOException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public void showRoyalHint(View view) {
+		if(royalHint.getVisibility() == View.GONE) {
+			royalHint.setVisibility(View.VISIBLE);
+		} else {
+			royalHint.setVisibility(View.GONE);
+		}
+	}
+	
+	public void showCapturableHint(View view) {
+		if(capturableHint.getVisibility() == View.GONE) {
+			capturableHint.setVisibility(View.VISIBLE);
+		} else {
+			capturableHint.setVisibility(View.GONE);
+		}
+	}
+	
+	public void showCustomAttacksHint(View view) {
+		if(customAttacksHint.getVisibility() == View.GONE) {
+			customAttacksHint.setVisibility(View.VISIBLE);
+		} else {
+			customAttacksHint.setVisibility(View.GONE);
 		}
 	}
 }

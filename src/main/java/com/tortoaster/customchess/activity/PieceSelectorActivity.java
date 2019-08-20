@@ -20,7 +20,7 @@ public class PieceSelectorActivity extends AppCompatActivity implements Button.O
 	
 	private static final int NEW_PIECE = 1, EDIT_PIECE = 2;
 	
-	private String lastLoaded;
+	private String lastEdited;
 	
 	private FileAdapter adapter;
 	
@@ -39,7 +39,7 @@ public class PieceSelectorActivity extends AppCompatActivity implements Button.O
 		pieces.setItemAnimator(new DefaultItemAnimator());
 		pieces.setAdapter(adapter);
 		
-		new ItemTouchHelper(new SwipeToDeleteCallback(adapter)).attachToRecyclerView(pieces);
+		new ItemTouchHelper(new SwipeToDeleteCallback(this, adapter)).attachToRecyclerView(pieces);
 	}
 	
 	@Override
@@ -47,20 +47,25 @@ public class PieceSelectorActivity extends AppCompatActivity implements Button.O
 		if(resultCode == RESULT_OK) {
 			switch(requestCode) {
 				case NEW_PIECE:
-				case EDIT_PIECE:
 					adapter.add(new File(getFilesDir() + File.separator + "p_" + intent.getStringExtra("name") + ".txt"));
+					break;
+				case EDIT_PIECE:
+					String name = intent.getStringExtra("name");
+					if(!lastEdited.equals(name)) adapter.replace(new File(getFilesDir() + File.separator + "p_" + lastEdited + ".txt"), new File(getFilesDir() + File.separator + "p_" + name + ".txt"));
 			}
 		}
 	}
 	
 	@Override
 	public void onClick(View v) {
-		loadPiece(((Button) v).getText().toString());
+		String name = ((Button) v).getText().toString();
+		
+		lastEdited = name;
+		
+		loadPiece(name);
 	}
 	
 	public void loadPiece(String name) {
-		lastLoaded = name;
-		
 		Intent intent = new Intent(this, PieceEditorActivity.class);
 		intent.putExtra("name", name);
 		startActivityForResult(intent, EDIT_PIECE);

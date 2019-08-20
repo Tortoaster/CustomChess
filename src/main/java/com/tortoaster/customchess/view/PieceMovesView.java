@@ -1,7 +1,6 @@
 package com.tortoaster.customchess.view;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.support.annotation.ColorInt;
@@ -12,8 +11,6 @@ import android.view.View;
 
 import com.tortoaster.customchess.R;
 import com.tortoaster.customchess.chess.Move;
-import com.tortoaster.customchess.chess.Position;
-import com.tortoaster.customchess.chess.Team;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,16 +19,16 @@ public class PieceMovesView extends View implements View.OnTouchListener {
 	
 	private static final int SIZE = 7, PIECE_X = 3, PIECE_Y = 3;
 	
-	private boolean jumping = false, repeating = false;
+	private static final Paint PAINT = new Paint(Paint.ANTI_ALIAS_FLAG);
 	
-	private int tileSize;
+	private boolean jumping, repeating, erasing;
+	
+	private int tileSize, lastDeltaX, lastDeltaY;
 	
 	@ColorInt
 	private final int lightColor, darkColor, normalColor, jumpingColor, repeatingColor, jumpingRepeatingColor;
 	
-	private List<Move> moves = new ArrayList<>();
-	
-	private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+	private List<Move> moves;
 	
 	public PieceMovesView(Context context) {
 		this(context, null);
@@ -52,6 +49,8 @@ public class PieceMovesView extends View implements View.OnTouchListener {
 		jumpingColor = getResources().getColor(R.color.highlighted);
 		repeatingColor = getResources().getColor(R.color.threatened);
 		jumpingRepeatingColor = getResources().getColor(R.color.marked);
+		
+		moves = translateData("");
 	}
 	
 	@Override
@@ -60,10 +59,10 @@ public class PieceMovesView extends View implements View.OnTouchListener {
 		
 		for(int y = 0; y < SIZE; y++) {
 			for(int x = 0; x < SIZE; x++) {
-				if((x + y) % 2 == 0) paint.setColor(lightColor);
-				else paint.setColor(darkColor);
+				if((x + y) % 2 == 0) PAINT.setColor(lightColor);
+				else PAINT.setColor(darkColor);
 				
-				canvas.drawRect(x * tileSize, y * tileSize, (x + 1) * tileSize, (y + 1) * tileSize, paint);
+				canvas.drawRect(x * tileSize, y * tileSize, (x + 1) * tileSize, (y + 1) * tileSize, PAINT);
 			}
 		}
 		
@@ -72,32 +71,69 @@ public class PieceMovesView extends View implements View.OnTouchListener {
 			int y = PIECE_Y + m.getDeltaY();
 			
 			if(m.isJumping()) {
-				if(m.isRepeating()) paint.setColor(jumpingRepeatingColor);
-				else paint.setColor(jumpingColor);
+				if(m.isRepeating()) PAINT.setColor(jumpingRepeatingColor);
+				else PAINT.setColor(jumpingColor);
 			} else {
-				if(m.isRepeating()) paint.setColor(repeatingColor);
-				else paint.setColor(normalColor);
+				if(m.isRepeating()) PAINT.setColor(repeatingColor);
+				else PAINT.setColor(normalColor);
 			}
 			
-			canvas.drawRect(x * tileSize, y * tileSize, (x + 1) * tileSize, (y + 1) * tileSize, paint);
+			canvas.drawRect(x * tileSize, y * tileSize, (x + 1) * tileSize, (y + 1) * tileSize, PAINT);
 		}
 		
-		paint.setColor(darkColor);
-		canvas.drawCircle((PIECE_X + 0.5f) * tileSize, (PIECE_Y + 0.5f) * tileSize, tileSize / 4f, paint);
+		PAINT.setColor(darkColor);
+		canvas.drawCircle((PIECE_X + 0.5f) * tileSize, (PIECE_Y + 0.5f) * tileSize, tileSize / 4f, PAINT);
 	}
 	
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
-		int deltaX = (int) (event.getX() / tileSize) - PIECE_X;
-		int deltaY = (int) (event.getY() / tileSize) - PIECE_Y;
+		int deltaX, deltaY;
 		
-		if(deltaX != 0 || deltaY != 0) {
-			Move move = new Move(deltaX, deltaY, repeating, jumping);
-			
-			moves.remove(move);
-			moves.add(move);
-			
-			postInvalidate();
+		switch(event.getAction()) {
+			case MotionEvent.ACTION_DOWN:
+				deltaX = (int) (event.getX() / tileSize) - PIECE_X;
+				deltaY = (int) (event.getY() / tileSize) - PIECE_Y;
+				
+				if((deltaX != 0 || deltaY != 0) && (deltaX != lastDeltaX || deltaY != lastDeltaY) && deltaX <= 3 && deltaY <= 3) {
+					Move move = new Move(deltaX, deltaY, repeating, jumping);
+					
+					if(moves.contains(move)) {
+						moves.remove(move);
+						erasing = true;
+					} else {
+						moves.add(move);
+						erasing = false;
+					}
+					
+					lastDeltaX = deltaX;
+					lastDeltaY = deltaY;
+					
+					postInvalidate();
+				}
+				break;
+			case MotionEvent.ACTION_MOVE:
+				deltaX = (int) (event.getX() / tileSize) - PIECE_X;
+				deltaY = (int) (event.getY() / tileSize) - PIECE_Y;
+				
+				if((deltaX != 0 || deltaY != 0) && (deltaX != lastDeltaX || deltaY != lastDeltaY) && deltaX <= 3 && deltaY <= 3) {
+					Move move = new Move(deltaX, deltaY, repeating, jumping);
+					
+					if(erasing) {
+						moves.remove(move);
+					} else if(!moves.contains(move)) {
+						moves.add(move);
+					}
+					
+					lastDeltaX = deltaX;
+					lastDeltaY = deltaY;
+					
+					postInvalidate();
+				}
+				break;
+			case MotionEvent.ACTION_UP:
+				lastDeltaX = 0;
+				lastDeltaY = 0;
+				erasing = false;
 		}
 		
 		return true;
@@ -130,7 +166,7 @@ public class PieceMovesView extends View implements View.OnTouchListener {
 	public String getData() {
 		StringBuilder data = new StringBuilder();
 		
-		for(Move m: moves) {
+		for(Move m : moves) {
 			data.append(m.getDeltaX()).append(' ').append(m.getDeltaY()).append(' ').append(m.isJumping() ? 1 : 0).append(' ').append(m.isRepeating() ? 1 : 0).append(", ");
 		}
 		
@@ -140,12 +176,14 @@ public class PieceMovesView extends View implements View.OnTouchListener {
 	public static List<Move> translateData(String data) {
 		List<Move> moves = new ArrayList<>();
 		
-		String[] lines = data.split(", ");
-		
-		for(String m : lines) {
-			String[] numbers = m.split(" ");
+		if(!data.isEmpty()) {
+			String[] lines = data.split(", ");
 			
-			if(numbers.length == 4) moves.add(new Move(Integer.parseInt(numbers[0]), Integer.parseInt(numbers[1]), Integer.parseInt(numbers[2]) != 0, Integer.parseInt(numbers[3]) != 0));
+			for(String m : lines) {
+				String[] numbers = m.split(" ");
+				
+				moves.add(new Move(Integer.parseInt(numbers[0]), Integer.parseInt(numbers[1]), Integer.parseInt(numbers[2]) != 0, Integer.parseInt(numbers[3]) != 0));
+			}
 		}
 		
 		return moves;

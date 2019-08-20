@@ -10,28 +10,108 @@
 		android:layout_height="wrap_content"
 		android:orientation="vertical">
 		
-		<LinearLayout style="@style/ButtonList">
+		<LinearLayout style="@style/SettingList">
 			
 			<EditText
 				android:id="@+id/piece_name"
 				style="@style/Default"
+				android:autofillHints="name"
 				android:hint="@string/piece_name"
-				android:inputType="text" />
+				android:inputType="text"
+				tools:targetApi="O" />
 			
-			<Switch
-				android:id="@+id/royal"
-				style="@style/Default"
-				android:text="@string/royal" />
+			<LinearLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:orientation="vertical">
+				
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:gravity="center_vertical">
+					
+					<ImageButton
+						style="@style/Default"
+						android:layout_width="wrap_content"
+						android:background="@null"
+						android:contentDescription="@string/hint"
+						android:onClick="showRoyalHint"
+						android:src="@drawable/hint" />
+					
+					<Switch
+						android:id="@+id/royal"
+						style="@style/Default"
+						android:text="@string/royal" />
+				</LinearLayout>
+				
+				<TextView
+					android:id="@+id/royal_hint"
+					style="@style/Hint"
+					android:text="@string/royal_hint"
+					android:visibility="gone" />
+			</LinearLayout>
 			
-			<Switch
-				android:id="@+id/capturable"
-				style="@style/Default"
-				android:text="@string/capturable" />
+			<LinearLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:orientation="vertical">
+				
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:gravity="center_vertical">
+					
+					<ImageButton
+						style="@style/Default"
+						android:layout_width="wrap_content"
+						android:background="@null"
+						android:contentDescription="@string/hint"
+						android:onClick="showCapturableHint"
+						android:src="@drawable/hint" />
+					
+					<Switch
+						android:id="@+id/capturable"
+						style="@style/Default"
+						android:text="@string/capturable" />
+				</LinearLayout>
+				
+				<TextView
+					android:id="@+id/capturable_hint"
+					style="@style/Hint"
+					android:text="@string/capturable_hint"
+					android:visibility="gone" />
+			</LinearLayout>
 			
-			<Switch
-				android:id="@+id/custom_attacks"
-				style="@style/Default"
-				android:text="@string/custom_attacks" />
+			<LinearLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:orientation="vertical">
+				
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:gravity="center_vertical">
+					
+					<ImageButton
+						style="@style/Default"
+						android:layout_width="wrap_content"
+						android:background="@null"
+						android:contentDescription="@string/hint"
+						android:onClick="showCustomAttacksHint"
+						android:src="@drawable/hint" />
+					
+					<Switch
+						android:id="@+id/custom_attacks"
+						style="@style/Default"
+						android:text="@string/custom_attacks" />
+				</LinearLayout>
+				
+				<TextView
+					android:id="@+id/custom_attacks_hint"
+					style="@style/Hint"
+					android:text="@string/custom_attacks_hint"
+					android:visibility="gone" />
+			</LinearLayout>
 			
 			<Button
 				style="@style/Default"

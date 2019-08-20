@@ -5,8 +5,9 @@
 		
 		<item name="android:textViewStyle">@style/TextStyle</item>
 		<item name="android:checkedTextViewStyle">@style/TextStyle</item>
-		
 		<item name="buttonStyle">@style/ButtonStyle</item>
+		<item name="editTextStyle">@style/EditTextStyle</item>
+		<item name="switchStyle">@style/SwitchStyle</item>
 	</style>
 	
 	<style name="TextStyle" parent="android:Widget.TextView">
@@ -24,13 +25,34 @@
 		<item name="android:textStyle">bold</item>
 	</style>
 	
+	<style name="EditTextStyle" parent="android:Widget.EditText">
+		<item name="android:background">@drawable/light_black_panel</item>
+		<item name="android:padding">16dp</item>
+		<item name="android:textAlignment">center</item>
+		<item name="android:textColor">@color/white</item>
+		<item name="android:textColorHint">@color/darkWhite</item>
+		<item name="android:textCursorDrawable">@null</item>
+		<item name="android:textSize">16sp</item>
+		<item name="android:textStyle">bold</item>
+	</style>
+	
+	<style name="SwitchStyle" parent="TextAppearance.AppCompat.Widget.Switch">
+	
+	</style>
+	
 	<style name="Default">
 		<item name="android:layout_width">match_parent</item>
 		<item name="android:layout_height">wrap_content</item>
 		<item name="android:layout_margin">8dp</item>
 	</style>
 	
-	<style name="ButtonList" parent="Default">
+	<style name="Hint" parent="Default">
+		<item name="android:background">@drawable/light_black_panel</item>
+		<item name="android:textSize">16sp</item>
+		<item name="android:textStyle">italic</item>
+	</style>
+	
+	<style name="SettingList" parent="Default">
 		<item name="android:orientation">vertical</item>
 		<item name="android:paddingStart">32dp</item>
 		<item name="android:paddingEnd">32dp</item>
