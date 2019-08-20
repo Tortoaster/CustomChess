@@ -16,7 +16,7 @@ import com.tortoaster.customchess.view.SwipeToDeleteCallback;
 
 import java.io.File;
 
-public class PieceSelectorActivity extends AppCompatActivity implements Button.OnClickListener {
+public class PieceSelectorActivity extends AppCompatActivity implements Button.OnClickListener, FileAdapter.RemoveListener {
 	
 	private static final int NEW_PIECE = 1, EDIT_PIECE = 2;
 	
@@ -34,6 +34,8 @@ public class PieceSelectorActivity extends AppCompatActivity implements Button.O
 		RecyclerView.LayoutManager manager = new LinearLayoutManager(getApplicationContext());
 		
 		adapter = new FileAdapter(getFilesDir().listFiles(), "p_", ".txt", this);
+		
+		adapter.setRemoveListener(this);
 		
 		pieces.setLayoutManager(manager);
 		pieces.setItemAnimator(new DefaultItemAnimator());
@@ -63,6 +65,12 @@ public class PieceSelectorActivity extends AppCompatActivity implements Button.O
 		lastEdited = name;
 		
 		loadPiece(name);
+	}
+	
+	@Override
+	public void removed(String name) {
+		new File(getFilesDir() + File.separator + "l_" + name + ".png").delete();
+		new File(getFilesDir() + File.separator + "d_" + name + ".png").delete();
 	}
 	
 	public void loadPiece(String name) {

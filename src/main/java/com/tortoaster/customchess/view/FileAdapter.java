@@ -17,6 +17,10 @@ import java.util.List;
 
 public class FileAdapter extends RecyclerView.Adapter {
 	
+	public interface RemoveListener {
+		void removed(String name);
+	}
+	
 	public class FileViewHolder extends RecyclerView.ViewHolder {
 		
 		private final Button button;
@@ -37,6 +41,8 @@ public class FileAdapter extends RecyclerView.Adapter {
 	private final List<File> files;
 	
 	private final View.OnClickListener listener;
+	
+	private RemoveListener removeListener;
 	
 	public FileAdapter(File[] unfiltered, String prefix, String suffix, View.OnClickListener listener) {
 		this.prefix = prefix;
@@ -86,14 +92,12 @@ public class FileAdapter extends RecyclerView.Adapter {
 		}
 	}
 	
-	public void replace(File old, File replace) {
+	public boolean replace(File old, File replace) {
 		int oldIndex = files.indexOf(old);
 		
 		files.remove(oldIndex);
 		
 		notifyItemRemoved(oldIndex);
-		
-		old.renameTo(replace);
 		
 		int newIndex = -Collections.binarySearch(files, replace) - 1;
 		
@@ -102,13 +106,24 @@ public class FileAdapter extends RecyclerView.Adapter {
 			
 			notifyItemInserted(newIndex);
 		}
+		
+		return old.renameTo(replace);
 	}
 	
-	public void remove(int index) {
+	public boolean remove(int index) {
 		File file = files.remove(index);
 		
-		file.delete();
-		
 		notifyItemRemoved(index);
+		
+		if(removeListener != null) {
+			String name = file.getName();
+			removeListener.removed(name.substring(prefix.length(), name.length() - suffix.length()));
+		}
+		
+		return file.delete();
+	}
+	
+	public void setRemoveListener(RemoveListener removeListener) {
+		this.removeListener = removeListener;
 	}
 }

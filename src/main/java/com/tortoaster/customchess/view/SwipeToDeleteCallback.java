@@ -3,8 +3,13 @@ package com.tortoaster.customchess.view;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.widget.Toast;
 
 public class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {
+	
+	private int previousDirection;
+	
+	private RecyclerView.ViewHolder previousHolder;
 	
 	private final FileAdapter adapter;
 	
@@ -19,11 +24,15 @@ public class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {
 	
 	@Override
 	public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-		if(true) {
+		if(viewHolder == previousHolder && direction != previousDirection) {
 			adapter.remove(viewHolder.getAdapterPosition());
-			adapter.notifyDataSetChanged();
 		} else {
-		
+			previousHolder = viewHolder;
+			previousDirection = direction;
+			
+			adapter.notifyDataSetChanged();
+			
+			Toast.makeText(context, "Now swipe the other direction to delete", Toast.LENGTH_LONG).show();
 		}
 	}
 	
