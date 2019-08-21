@@ -17,34 +17,55 @@ import java.util.List;
 
 public class FileAdapter extends RecyclerView.Adapter {
 	
-	public interface RemoveListener {
-		void removed(String name);
-	}
-	
-	public class FileViewHolder extends RecyclerView.ViewHolder {
+	private class FileViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 		
 		private final Button button;
 		
-		public FileViewHolder(View view) {
+		private final FileListener listener;
+		
+		private File file;
+		
+		private String prefix, suffix;
+		
+		private FileViewHolder(View view, FileListener listener) {
 			super(view);
+			
+			this.listener = listener;
+			
+			view.setOnClickListener(this);
 			
 			button = view.findViewById(R.id.name);
 		}
 		
-		public Button getButton() {
-			return button;
+		@Override
+		public void onClick(View v) {
+			listener.fileSelected(file, prefix, suffix);
 		}
+		
+		public void setFile(File file, String prefix, String suffix) {
+			this.file = file;
+			this.prefix = prefix;
+			this.suffix = suffix;
+			
+			String name = file.getName();
+			
+			button.setText(name.substring(prefix.length(), name.length() - suffix.length()));
+		}
+	}
+	
+	public interface FileListener {
+		void fileSelected(File file, String prefix, String suffix);
+		
+		void fileRemoved(File file, String prefix, String suffix);
 	}
 	
 	private final String prefix, suffix;
 	
 	private final List<File> files;
 	
-	private final View.OnClickListener listener;
+	private final FileListener listener;
 	
-	private RemoveListener removeListener;
-	
-	public FileAdapter(File[] unfiltered, String prefix, String suffix, View.OnClickListener listener) {
+	public FileAdapter(File[] unfiltered, String prefix, String suffix, FileListener listener) {
 		this.prefix = prefix;
 		this.suffix = suffix;
 		this.listener = listener;
@@ -65,16 +86,12 @@ public class FileAdapter extends RecyclerView.Adapter {
 	public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 		View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.file_list_row, parent, false);
 		
-		view.findViewById(R.id.name).setOnClickListener(listener);
-		
-		return new FileViewHolder(view);
+		return new FileViewHolder(view, listener);
 	}
 	
 	@Override
 	public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-		String name = files.get(position).getName();
-		
-		((FileViewHolder) holder).getButton().setText(name.substring(prefix.length(), name.length() - suffix.length()));
+		((FileViewHolder) holder).setFile(files.get(position), prefix, suffix);
 	}
 	
 	@Override
@@ -115,15 +132,8 @@ public class FileAdapter extends RecyclerView.Adapter {
 		
 		notifyItemRemoved(index);
 		
-		if(removeListener != null) {
-			String name = file.getName();
-			removeListener.removed(name.substring(prefix.length(), name.length() - suffix.length()));
-		}
+		if(listener != null) listener.fileRemoved(file, prefix, suffix);
 		
 		return file.delete();
-	}
-	
-	public void setRemoveListener(RemoveListener removeListener) {
-		this.removeListener = removeListener;
 	}
 }

@@ -8,15 +8,16 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
-import android.widget.Button;
 
 import com.tortoaster.customchess.R;
+import com.tortoaster.customchess.chess.Team;
+import com.tortoaster.customchess.chess.piece.Piece;
 import com.tortoaster.customchess.view.FileAdapter;
 import com.tortoaster.customchess.view.SwipeToDeleteCallback;
 
 import java.io.File;
 
-public class PieceSelectorActivity extends AppCompatActivity implements Button.OnClickListener, FileAdapter.RemoveListener {
+public class PieceSelectorActivity extends AppCompatActivity implements FileAdapter.FileListener {
 	
 	private static final int NEW_PIECE = 1, EDIT_PIECE = 2;
 	
@@ -33,9 +34,7 @@ public class PieceSelectorActivity extends AppCompatActivity implements Button.O
 		
 		RecyclerView.LayoutManager manager = new LinearLayoutManager(getApplicationContext());
 		
-		adapter = new FileAdapter(getFilesDir().listFiles(), "p_", ".txt", this);
-		
-		adapter.setRemoveListener(this);
+		adapter = new FileAdapter(getFilesDir().listFiles(), Piece.PREFIX, Piece.SUFFIX, this);
 		
 		pieces.setLayoutManager(manager);
 		pieces.setItemAnimator(new DefaultItemAnimator());
@@ -49,31 +48,36 @@ public class PieceSelectorActivity extends AppCompatActivity implements Button.O
 		if(resultCode == RESULT_OK) {
 			switch(requestCode) {
 				case NEW_PIECE:
-					adapter.add(new File(getFilesDir() + File.separator + "p_" + intent.getStringExtra("name") + ".txt"));
+					adapter.add(new File(getFilesDir() + File.separator + Piece.PREFIX + intent.getStringExtra("name") + Piece.SUFFIX));
 					break;
 				case EDIT_PIECE:
 					String name = intent.getStringExtra("name");
-					if(!lastEdited.equals(name)) adapter.replace(new File(getFilesDir() + File.separator + "p_" + lastEdited + ".txt"), new File(getFilesDir() + File.separator + "p_" + name + ".txt"));
+					if(!lastEdited.equals(name))
+						adapter.replace(new File(getFilesDir() + File.separator + Piece.PREFIX + lastEdited + Piece.SUFFIX), new File(getFilesDir() + File.separator + Piece.PREFIX + name + Piece.SUFFIX));
 			}
 		}
 	}
 	
 	@Override
-	public void onClick(View v) {
-		String name = ((Button) v).getText().toString();
+	public void fileSelected(File file, String prefix, String suffix) {
+		String name = file.getName();
 		
-		lastEdited = name;
-		
-		loadPiece(name);
+		loadPiece(name.substring(prefix.length(), name.length() - suffix.length()));
 	}
 	
 	@Override
-	public void removed(String name) {
-		new File(getFilesDir() + File.separator + "l_" + name + ".png").delete();
-		new File(getFilesDir() + File.separator + "d_" + name + ".png").delete();
+	public void fileRemoved(File file, String prefix, String suffix) {
+		String name = file.getName();
+		
+		name = name.substring(prefix.length(), name.length() - suffix.length());
+		
+		new File(getFilesDir() + File.separator + Team.LIGHT.getPrefix() + name + Team.SUFFIX).delete();
+		new File(getFilesDir() + File.separator + Team.DARK.getPrefix() + name + Team.SUFFIX).delete();
 	}
 	
 	public void loadPiece(String name) {
+		lastEdited = name;
+		
 		Intent intent = new Intent(this, PieceEditorActivity.class);
 		intent.putExtra("name", name);
 		startActivityForResult(intent, EDIT_PIECE);

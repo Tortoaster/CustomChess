@@ -158,7 +158,7 @@ public enum Kind {
 		if(this == CUSTOM) return;
 
 		if(this == WALL) {
-			white = black = generateSquare(context.getResources().getColor(R.color.darkBlack));
+			white = black = generateSquare(context.getResources().getColor(R.color.very_dark));
 			return;
 		}
 
@@ -200,7 +200,7 @@ public enum Kind {
 	}
 
 	public Bitmap getBitmap(Team team) {
-		if(team == Team.BLACK) return black;
+		if(team == Team.DARK) return black;
 		return white;
 	}
 

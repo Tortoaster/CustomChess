@@ -80,7 +80,7 @@ public class ComputerPlayer implements Player {
 		final int size = allMoves.size();
 		for(int i = size - 1; i >= 0; i--) {
 			board.performMove(allMoves.get(i).getPiece(), allMoves.get(i).getMove());
-			double eval = intMiniMax(pieces, 1, color.getOtherTeam(), Double.MIN_VALUE, Double.MAX_VALUE);
+			double eval = intMiniMax(pieces, 1, color.getOppositeTeam(), Double.MIN_VALUE, Double.MAX_VALUE);
 			MoveAndPiece map = new MoveAndPiece(allMoves.get(i).getMove(), allMoves.get(i).getPiece());
 			currentMoves.add(new EvalAndMove(eval, map));
 			board.undo();
@@ -156,7 +156,7 @@ public class ComputerPlayer implements Player {
 				// Update evaluations and alpha.
 				
 				// Recursive call.
-				double evaluation = intMiniMax(pieces, depth + 1, turn.getOtherTeam(), alpha, beta);
+				double evaluation = intMiniMax(pieces, depth + 1, turn.getOppositeTeam(), alpha, beta);
 				alpha = Math.max(alpha, evaluation);
 				bestValue = Math.max(bestValue, evaluation);
 				
@@ -183,7 +183,7 @@ public class ComputerPlayer implements Player {
 				// Update evaluations and beta.
 				
 				// Recursive call.
-				double evaluation = intMiniMax(pieces, depth + 1, turn.getOtherTeam(), alpha, beta);
+				double evaluation = intMiniMax(pieces, depth + 1, turn.getOppositeTeam(), alpha, beta);
 				beta = Math.min(beta, evaluation);
 				bestValue = Math.min(bestValue, evaluation);
 				
@@ -229,7 +229,7 @@ public class ComputerPlayer implements Player {
 				
 				// Update bestValue and alpha.
 				// Recursion.
-				double evaluation = quiescence(pieces, depth - 1, turn.getOtherTeam(), alpha, beta);
+				double evaluation = quiescence(pieces, depth - 1, turn.getOppositeTeam(), alpha, beta);
 				alpha = Math.max(alpha, evaluation);
 				bestValue = Math.max(bestValue, evaluation);
 				
@@ -251,7 +251,7 @@ public class ComputerPlayer implements Player {
 				
 				// Update bestValue and beta.
 				// Recursion.
-				double evaluation = quiescence(pieces, depth - 1, turn.getOtherTeam(), alpha, beta);
+				double evaluation = quiescence(pieces, depth - 1, turn.getOppositeTeam(), alpha, beta);
 				beta = Math.min(beta, evaluation);
 				bestValue = Math.min(bestValue, evaluation);
 				
@@ -310,7 +310,7 @@ public class ComputerPlayer implements Player {
 			//Pawn further on the board
 			if(p.getKind() == Kind.PAWN) {
 				int distance;
-				if(p.getTeam() == Team.BLACK) {
+				if(p.getTeam() == Team.DARK) {
 					distance = p.getY() - 1;
 				} else {
 					distance = board.getBoardHeight() - p.getY() - 2;

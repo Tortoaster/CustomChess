@@ -1,4 +1,4 @@
-package com.tortoaster.customchess.view;
+package com.tortoaster.customchess.chess;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -7,11 +7,10 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.tortoaster.customchess.R;
-import com.tortoaster.customchess.chess.Board;
 import com.tortoaster.customchess.chess.player.Player;
 import com.tortoaster.customchess.chess.piece.Kind;
 
-public class Chess extends View implements View.OnTouchListener {
+public class ChessView extends View implements View.OnTouchListener {
 	
 	private final int lightColor, darkColor, selectedColor, highlightedColor, endangeredColor, markedColor;
 	
@@ -19,21 +18,17 @@ public class Chess extends View implements View.OnTouchListener {
 	
 	private Board board;
 	
-	public Chess(Context context, AttributeSet attrs) {
+	public ChessView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		
 		setOnTouchListener(this);
 		
-		lightColor = getResources().getColor(R.color.white);
-		darkColor = getResources().getColor(R.color.darkWhite);
+		lightColor = getResources().getColor(R.color.very_light);
+		darkColor = getResources().getColor(R.color.light);
 		selectedColor = getResources().getColor(R.color.selected);
 		highlightedColor = getResources().getColor(R.color.highlighted);
 		endangeredColor = getResources().getColor(R.color.threatened);
 		markedColor = getResources().getColor(R.color.marked);
-		
-		for(Kind k : Kind.values()) {
-			k.loadImage(getContext());
-		}
 	}
 	
 	@Override

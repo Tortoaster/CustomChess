@@ -11,6 +11,7 @@ import com.tortoaster.customchess.chess.Move;
 import com.tortoaster.customchess.chess.Team;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -19,22 +20,22 @@ import java.util.List;
 
 public class CustomPiece extends Piece {
 	
+	public static final String PREFIX = "c_";
+	
 	private static final Paint PAINT = new Paint(Paint.ANTI_ALIAS_FLAG);
 	private final String name;
 	private int value;
 	private boolean royal, capturable;
 	private Move[] moves, attacks;
-	private Bitmap white, black;
-
+	private Bitmap light, dark;
+	
 	/**
-	 *
-	 * @param x 	The x coordinate of the piece.
-	 * @param y 	The y coordinate of the piece.
-	 * @param team 	The team of the piece.
-	 * @param name 	The name of the piece.
+	 * @param x     The x coordinate of the piece.
+	 * @param y     The y coordinate of the piece.
+	 * @param team  The team of the piece.
+	 * @param name  The name of the piece.
 	 * @param board The board the piece will be drawn on.
 	 */
-
 	public CustomPiece(int x, int y, Team team, String name, Board board, Context context) {
 		super(x, y, team, Kind.CUSTOM, board);
 		this.name = name;
@@ -112,7 +113,25 @@ public class CustomPiece extends Piece {
 			attacks[i] = listattacks.get(i);
 		
 	}
-
+	
+	public CustomPiece(int x, int y, Team team, Board board, String name, int value, boolean royal, boolean capturable, Move[] moves, Move[] attacks, Bitmap light, Bitmap dark) {
+		super(x, y, team, Kind.CUSTOM, board);
+		
+		this.name = name;
+		this.value = value;
+		this.royal = royal;
+		this.capturable = capturable;
+		this.moves = moves;
+		this.attacks = attacks;
+		this.light = light;
+		this.dark = dark;
+	}
+	
+	@Override
+	public Piece copy() {
+		return new CustomPiece(getX(), getY(), getTeam(), getBoard(), name, value, royal, capturable, moves, attacks, light, dark);
+	}
+	
 	/**
 	 * Draws the picture of the custom piece on the canvas.
 	 */
@@ -120,34 +139,36 @@ public class CustomPiece extends Piece {
 		if(getBitmap() != null)
 			canvas.drawBitmap(getBitmap(), null, getRect(), PAINT);
 	}
-
+	
 	/**
 	 * Decodes the pictures that were saved with the same name as the custom piece.
 	 */
 	public void loadImage(Context context) {
 		try {
-			white = BitmapFactory.decodeStream(context.openFileInput("w" + name + ".png"));
-			black = BitmapFactory.decodeStream(context.openFileInput("b" + name + ".png"));
+			light = BitmapFactory.decodeStream(context.openFileInput("l_" + name.substring(PREFIX.length()) + ".png"));
+			dark = BitmapFactory.decodeStream(context.openFileInput("d_" + name.substring(PREFIX.length()) + ".png"));
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
 	}
-
+	
 	/**
-	 *
 	 * @return the bitmap that corresponds with the team color.
 	 */
 	public Bitmap getBitmap() {
-		if(getTeam() == Team.BLACK) {
-			return black;
-		}
-		return white;
+		if(getTeam() == Team.LIGHT) return light;
+		return dark;
 	}
-
+	
+	public Bitmap getBitmap(Team team) {
+		if(team == Team.LIGHT) return light;
+		return dark;
+	}
+	
 	/**
 	 * These getters return the moves, attacks, name, if the piece is royal, capturable and the value of the piece.
 	 */
-
+	
 	public Move[] getMoveDirections() {
 		return moves;
 	}

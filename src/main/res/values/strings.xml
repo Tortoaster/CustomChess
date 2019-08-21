@@ -41,4 +41,5 @@
     <string name="hint">i</string>
     <string name="capturable_hint">Turning this off will make it impossible for other pieces to capture this piece. A royal piece must be capturable.</string>
 	<string name="custom_attacks_hint">Enabling this setting will allow you to specify the capturing moves of this piece separately from its normal moves. By default, these are the same.</string>
+	<string name="piece">Piece</string>
 </resources>

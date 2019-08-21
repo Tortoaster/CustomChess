@@ -8,6 +8,7 @@
 	<LinearLayout
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
+		android:gravity="center_horizontal"
 		android:orientation="vertical">
 		
 		<LinearLayout style="@style/SettingList">
@@ -15,11 +16,12 @@
 			<EditText
 				android:id="@+id/board_name"
 				style="@style/Default"
+				android:autofillHints="name"
 				android:hint="@string/board_name"
-				android:inputType="text" />
+				android:inputType="text"
+				tools:targetApi="O" />
 			
 			<TextView
-				android:id="@+id/board_width_txt"
 				style="@style/Default"
 				android:text="@string/board_width" />
 			
@@ -30,7 +32,6 @@
 				android:progress="4" />
 			
 			<TextView
-				android:id="@+id/board_height_txt"
 				style="@style/Default"
 				android:text="@string/board_height" />
 			
@@ -46,31 +47,31 @@
 			style="@style/Default" />
 		
 		<LinearLayout
-			style="@style/Default"
-			android:gravity="center"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:gravity="center_vertical"
 			android:orientation="horizontal">
 			
 			<Switch
 				android:id="@+id/black_white"
 				style="@style/Default"
-				android:layout_width="0dp"
-				android:layout_weight="1" />
+				android:layout_width="wrap_content" />
 			
 			<android.support.v7.widget.RecyclerView
-				android:id="@+id/piece_selector"
-				style="@style/Default"
-				android:layout_width="0dp"
-				android:layout_weight="9"
-				android:orientation="horizontal">
+				android:id="@+id/selector"
+				style="@style/Default">
 			
 			</android.support.v7.widget.RecyclerView>
 		
 		</LinearLayout>
 		
-		<Button
-			style="@style/Default"
-			android:onClick="saveBoard"
-			android:text="@string/save_board" />
+		<LinearLayout style="@style/SettingList">
+			
+			<Button
+				style="@style/Default"
+				android:onClick="save"
+				android:text="@string/save_board" />
+		</LinearLayout>
 	
 	</LinearLayout>
 </ScrollView>

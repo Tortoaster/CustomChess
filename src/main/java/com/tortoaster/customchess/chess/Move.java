@@ -1,5 +1,8 @@
 package com.tortoaster.customchess.chess;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Move {
 	
 	private boolean repeating, jumping;
@@ -46,5 +49,21 @@ public class Move {
 	
 	public boolean isJumping() {
 		return jumping;
+	}
+	
+	public static List<Move> translateData(String data) {
+		List<Move> moves = new ArrayList<>();
+		
+		if(!data.isEmpty()) {
+			String[] lines = data.split(", ");
+			
+			for(String m : lines) {
+				String[] numbers = m.split(" ");
+				
+				moves.add(new Move(Integer.parseInt(numbers[0]), Integer.parseInt(numbers[1]), Integer.parseInt(numbers[2]) != 0, Integer.parseInt(numbers[3]) != 0));
+			}
+		}
+		
+		return moves;
 	}
 }

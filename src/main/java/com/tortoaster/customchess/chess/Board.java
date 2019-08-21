@@ -11,7 +11,6 @@ import com.tortoaster.customchess.chess.player.Action;
 import com.tortoaster.customchess.chess.player.ComputerPlayer;
 import com.tortoaster.customchess.chess.player.Player;
 import com.tortoaster.customchess.chess.player.Reverter;
-import com.tortoaster.customchess.view.Chess;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -21,18 +20,22 @@ import java.util.List;
 
 public class Board {
 	
+	public static final float PIECE_OFFSET = 0.3f;
+	
+	public static final String PREFIX = "b_", SUFFIX = ".txt";
+	
 	private int boardWidth, boardHeight;
 	private int horizontalMargin, verticalMargin;
 	private int blockSize;
 	
 	private Piece selectedPiece;
 	
-	private Team turn = Team.WHITE;
+	private Team turn = Team.LIGHT;
 	
 	private List<Piece> lostWhitePieces = new ArrayList<>(), lostBlackPieces = new ArrayList<>();
 	
 	private Player currentPlayer;
-
+	
 	private List<Position> validMoves = new ArrayList<>();
 	private List<Position> checkPosition = new ArrayList<>();
 	private List<MovesForPiece> allMovesTurn = new ArrayList<>();
@@ -42,23 +45,23 @@ public class Board {
 	private Deque<Reverter> undos = new ArrayDeque<>();
 	
 	/**
-     *  booleans that keep track of whether a player is checked and whether they have any moves left
-     */
+	 * booleans that keep track of whether a player is checked and whether they have any moves left
+	 */
 	private boolean check, paralyzed;
 	
 	private List<Piece> pieces;
 	
-	private Chess chess;
+	private ChessView chess;
 	private int touchX, touchY;
 	
-	public Board(int boardWidth, int boardHeight, List<Piece> pieces, Chess chess) {
+	public Board(int boardWidth, int boardHeight, List<Piece> pieces, ChessView chess) {
 		this.boardWidth = boardWidth;
 		this.boardHeight = boardHeight;
 		this.chess = chess;
 		this.pieces = pieces;
-
+		
 		calculateAllMovesOfTurn();
-
+		
 		updatePlayer();
 	}
 	
@@ -164,7 +167,7 @@ public class Board {
 		tap(x1, y1);
 		tap(x2, y2);
 	}
-
+	
 	private void tap(int x, int y) {
 		
 		x = (x - horizontalMargin) / blockSize;
@@ -184,7 +187,7 @@ public class Board {
 			// deselects the piece
 			selectedPiece = null;
 			validMoves = new ArrayList<>();
-
+			
 		} else if(piece.getTeam() == turn) {
 			// selects a piece
 			selectedPiece = piece;
@@ -222,7 +225,7 @@ public class Board {
 		
 		final Piece victim = getPiece(to.getX(), to.getY());
 		if(victim != null) {
-			if(victim.getTeam() == Team.WHITE) {
+			if(victim.getTeam() == Team.LIGHT) {
 				lostWhitePieces.add(victim);
 				final Rect previousLocation = victim.getRect();
 				victim.setPosition((int) ((lostWhitePieces.size() / 2.0) * blockSize), verticalMargin - blockSize - blockSize / 3, blockSize);
@@ -274,7 +277,7 @@ public class Board {
 	 * If the game is not over, the other team gets the turn.
 	 */
 	public void nextPlayer() {
-		turn = turn.getOtherTeam();
+		turn = turn.getOppositeTeam();
 		
 		Collections.sort(pieces);
 		
@@ -291,9 +294,9 @@ public class Board {
 	 * their move is requested.
 	 */
 	private void updatePlayer() {
-		if (turn == Team.WHITE) currentPlayer = chess.getWhitePlayer();
-		if (turn == Team.BLACK) currentPlayer = chess.getBlackPlayer();
-
+		if(turn == Team.LIGHT) currentPlayer = chess.getWhitePlayer();
+		if(turn == Team.DARK) currentPlayer = chess.getBlackPlayer();
+		
 		if(currentPlayer instanceof ComputerPlayer) {
 			chess.invalidate();
 			currentPlayer.nextMove(pieces);
@@ -306,7 +309,6 @@ public class Board {
 	 *
 	 * @param x the x of the board
 	 * @param y the y of the board
-	 *
 	 * @return the piece at that position
 	 */
 	public Piece getPiece(int x, int y) {
@@ -396,7 +398,6 @@ public class Board {
 	 *
 	 * @param givenList the used list of moves
 	 * @param addToList if true, adds the position of the checked piece to checkPosition
-	 *
 	 * @return true if a piece is checked
 	 */
 	private boolean checkForCheck(List<MovesForPiece> givenList, boolean addToList) {
@@ -415,7 +416,7 @@ public class Board {
 	 */
 	public boolean handlesCheck() {
 		if(check && paralyzed) {
-			((GameActivity) chess.getContext()).showWin(turn.getOtherTeam());
+			((GameActivity) chess.getContext()).showWin(turn.getOppositeTeam());
 			return true;
 		} else if(paralyzed) {
 			((GameActivity) chess.getContext()).showTie();
@@ -430,7 +431,6 @@ public class Board {
 	 *
 	 * @param position  the given position
 	 * @param givenList the List which has to be searched through
-	 *
 	 * @return true if the given position is in the given MovesForPiece list
 	 */
 	private boolean positionInMovesForPieceList(Position position, List<MovesForPiece> givenList) {
@@ -447,7 +447,6 @@ public class Board {
 	 * @param m       the move
 	 * @param counter the amount of times the move is performed
 	 * @param p       the given piece
-	 *
 	 * @return the new x
 	 */
 	
@@ -461,7 +460,6 @@ public class Board {
 	 * @param m       the move
 	 * @param counter the amount of times the move is performed
 	 * @param p       the given piece
-	 *
 	 * @return the new y
 	 */
 	
@@ -475,7 +473,6 @@ public class Board {
 	 * @param m       the current move
 	 * @param counter the amount that the move has to be performed
 	 * @param p       the given piece
-	 *
 	 * @return true if it is a valid move
 	 */
 	private boolean onBoard(Move m, int counter, Piece p) {
@@ -492,7 +489,6 @@ public class Board {
 	 * @param m       the given move
 	 * @param counter the amount the move has to be performed
 	 * @param p       the given piece
-	 *
 	 * @return returns true if there is no piece between the old and new positions of the move
 	 */
 	private boolean allowedBigMove(Move m, int counter, Piece p) {
@@ -528,7 +524,6 @@ public class Board {
 	 * @param givenPiece    the given piece to calculate the moves for
 	 * @param onlyAttacking true if the function only calculates attacks, false if both attacks and
 	 *                      moves
-	 *
 	 * @return an list of possible positions
 	 */
 	private ArrayList<Position> calculateLegalMoves(Piece givenPiece, boolean onlyAttacking) {
@@ -613,7 +608,7 @@ public class Board {
 	public void setSelectedPiece(Piece p) {
 		selectedPiece = p;
 	}
-
+	
 	public boolean isParalyzed() {
 		return paralyzed;
 	}
@@ -626,7 +621,7 @@ public class Board {
 		return boardHeight;
 	}
 	
-	public Chess getChess() {
+	public ChessView getChess() {
 		return chess;
 	}
 	

@@ -1,32 +1,39 @@
 package com.tortoaster.customchess.chess;
 
-import android.graphics.Color;
-
 public enum Team {
-	BLACK(1),
-	WHITE(-1);
+	LIGHT(1, "l_"),
+	DARK(-1, "d_");
 	
-	private int coefficient;
+	public static final String SUFFIX = ".png";
 	
-	Team(int coefficient) {
+	private final int coefficient;
+	
+	private final String prefix;
+	
+	Team(int coefficient, String prefix) {
 		this.coefficient = coefficient;
+		this.prefix = prefix;
 	}
-
-	/**
-	 * These getters return the coefficient, the other team and this teams color.
-	 */
-
+	
 	public int getCoefficient() {
 		return coefficient;
 	}
 	
-	public Team getOtherTeam() {
-		if(this == BLACK) return WHITE;
-		return BLACK;
+	public String getPrefix() {
+		return prefix;
 	}
 	
-	public int getColor() {
-		if(this == BLACK) return Color.BLACK;
-		return Color.WHITE;
+	public Team getOppositeTeam() {
+		if(this == DARK) return LIGHT;
+		return DARK;
+	}
+	
+	public Team getNextTeam() {
+		if(this == DARK) return LIGHT;
+		return DARK;
+	}
+	
+	public static Team getStartTeam() {
+		return LIGHT;
 	}
 }

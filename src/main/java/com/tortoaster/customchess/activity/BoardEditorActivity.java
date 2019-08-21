@@ -3,44 +3,42 @@ package com.tortoaster.customchess.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.tortoaster.customchess.R;
-import com.tortoaster.customchess.chess.piece.Kind;
-import com.tortoaster.customchess.chess.piece.Piece;
 import com.tortoaster.customchess.chess.Team;
+import com.tortoaster.customchess.chess.piece.CustomPiece;
+import com.tortoaster.customchess.chess.piece.Piece;
 import com.tortoaster.customchess.view.BoardEditorView;
-import com.tortoaster.customchess.view.PieceSelectorView;
+import com.tortoaster.customchess.view.PieceAdapter;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
-public class BoardEditorActivity extends AppCompatActivity {
+public class BoardEditorActivity extends AppCompatActivity implements PieceAdapter.PieceSelectListener {
 	
-	private static final int SIZE_OFFSET = 4;
+	private static final int MIN_SIZE = 4;
 	
-	private EditText boardName;
+	private List<Piece> pieceList;
 	
-	private TextView widthText, heightText;
-	
-	private Switch colorSwitch;
-	
-	private SeekBar widthBar, heightBar;
-	
-	private PieceSelectorView selector;
-	
-	private String widthLabel, heightLabel;
-	
+	private EditText name;
+	private SeekBar width, height;
 	private BoardEditorView boardEditor;
 	
 	@Override
@@ -48,31 +46,48 @@ public class BoardEditorActivity extends AppCompatActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_board_editor);
 		
-		boardName = findViewById(R.id.board_name);
-		widthText = findViewById(R.id.board_width_txt);
-		heightText = findViewById(R.id.board_height_txt);
-		widthBar = findViewById(R.id.board_width);
-		heightBar = findViewById(R.id.board_height);
-		selector = findViewById(R.id.piece_selector);
+		name = findViewById(R.id.board_name);
+		width = findViewById(R.id.board_width);
+		height = findViewById(R.id.board_height);
 		boardEditor = findViewById(R.id.board_editor);
-		colorSwitch = findViewById(R.id.black_white);
 		
-		widthLabel = (String) widthText.getText();
-		heightLabel = (String) heightText.getText();
+		RecyclerView selector = findViewById(R.id.selector);
+		Switch colorSwitch = findViewById(R.id.black_white);
 		
-		int startWidth = widthBar.getProgress() + SIZE_OFFSET;
-		int startHeight = heightBar.getProgress() + SIZE_OFFSET;
+		pieceList = new ArrayList<>();
 		
-		widthText.setText(widthLabel + " " + (startWidth));
-		heightText.setText(heightLabel + " " + (startHeight));
+		final RecyclerView.Adapter adapter = new PieceAdapter(pieceList, this);
 		
-		widthBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+		pieceList.add(Piece.createPiece(0, 0, Team.getStartTeam(), "wall", null, this));
+		pieceList.add(Piece.createPiece(0, 0, Team.getStartTeam(), "king", null, this));
+		pieceList.add(Piece.createPiece(0, 0, Team.getStartTeam(), "queen", null, this));
+		pieceList.add(Piece.createPiece(0, 0, Team.getStartTeam(), "bishop", null, this));
+		pieceList.add(Piece.createPiece(0, 0, Team.getStartTeam(), "knight", null, this));
+		pieceList.add(Piece.createPiece(0, 0, Team.getStartTeam(), "rook", null, this));
+		pieceList.add(Piece.createPiece(0, 0, Team.getStartTeam(), "pawn", null, this));
+		
+		for(String s: getFilesDir().list(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.startsWith(Piece.PREFIX) && name.endsWith(Piece.SUFFIX);
+			}
+		})) {
+			pieceList.add(Piece.createPiece(0, 0, Team.getStartTeam(), CustomPiece.PREFIX + s.substring(Piece.PREFIX.length(), s.length() - Piece.SUFFIX.length()), null, this));
+		}
+		
+		RecyclerView.LayoutManager manager = new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false);
+		
+		selector.setLayoutManager(manager);
+		selector.setItemAnimator(new DefaultItemAnimator());
+		selector.setAdapter(adapter);
+		
+		boardEditor.setWidth(width.getProgress() + MIN_SIZE);
+		boardEditor.setHeight(height.getProgress() + MIN_SIZE);
+		
+		width.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				int width = progress + SIZE_OFFSET;
-				
-				widthText.setText(widthLabel + " " + width);
-				boardEditor.setBoardWidth(width);
+				boardEditor.setWidth(progress + MIN_SIZE);
 			}
 			
 			@Override
@@ -84,13 +99,10 @@ public class BoardEditorActivity extends AppCompatActivity {
 			}
 		});
 		
-		heightBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+		height.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				int height = progress + SIZE_OFFSET;
-				
-				heightText.setText(heightLabel + " " + height);
-				boardEditor.setBoardHeight(height);
+				boardEditor.setHeight(progress + MIN_SIZE);
 			}
 			
 			@Override
@@ -105,138 +117,136 @@ public class BoardEditorActivity extends AppCompatActivity {
 		colorSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if(isChecked) {
-					boardEditor.setTeam(Team.BLACK);
-					selector.setTeam(Team.BLACK);
-				} else {
-					boardEditor.setTeam(Team.WHITE);
-					selector.setTeam(Team.WHITE);
+				for(Piece p : pieceList) {
+					p.setTeam(p.getTeam().getOppositeTeam());
+					
+					adapter.notifyDataSetChanged();
 				}
 			}
 		});
-		
-		for(Kind k : Kind.values()) {
-			if(k != Kind.CUSTOM)
-				selector.addPiece(Piece.createPiece(0, 0, Team.WHITE, k.getName(), null, this));
-		}
-		
-		File[] files = getFilesDir().listFiles();
-		
-		for(File f : files)
-			if(f.getName().startsWith("p_") && f.getName().endsWith(".txt"))
-				selector.addPiece(Piece.createPiece(0, 0, Team.WHITE, f.getName().substring(2, f.getName().length() - 4), null, this));
 		
 		Intent intent = getIntent();
 		
 		String name = intent.getStringExtra("name");
 		
-		if(name != null) loadBoard(name);
+		if(name != null) load(name);
 	}
 	
-	/**
-	 * Saves the current board to a file named b_[board name].txt
-	 */
-	public void saveBoard(View view) {
-		if(!boardName.getText().toString().trim().isEmpty()) {
-			FileOutputStream fos = null;
-			String name = "b_" + boardName.getText() + ".txt";
-			StringBuilder content = new StringBuilder();
-			
-			for(int y = 0; y < heightBar.getProgress() + SIZE_OFFSET; y++) {
-				for(int x = 0; x < widthBar.getProgress() + SIZE_OFFSET; x++) {
-					Piece p = boardEditor.getPiece(x, y);
-					
-					if(p == null) content.append("-");
-					else content.append(p.getTeam() == Team.BLACK ? "b" : "w").append(p.getName());
-					
-					content.append(", ");
-				}
-				content.append("\n");
-			}
-			
-			try {
-				fos = openFileOutput(name, MODE_PRIVATE);
-				fos.write(content.toString().getBytes());
-				
-				Toast.makeText(this, "saved", Toast.LENGTH_SHORT).show();
-				Thread.sleep(500);
-				finish();
-			} catch(IOException e) {
-				Toast.makeText(this, "oh sh*t", Toast.LENGTH_SHORT).show();
-				e.printStackTrace();
-			} catch(InterruptedException e) {
-				e.printStackTrace();
-			} finally {
-				if(fos != null) {
-					try {
-						fos.close();
-					} catch(IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		} else {
-			Toast.makeText(this, "no", Toast.LENGTH_SHORT).show();
-		}
+	@Override
+	public void pieceSelected(Piece piece) {
+		boardEditor.setSelected(piece);
 	}
 	
-	/**
-	 * Loads a board from a file.
-	 *
-	 * @param name the name of the file to be read.
-	 */
-	public void loadBoard(String name) {
-		boardName.setText(name);
+	public void save(View view) {
+		int width = this.width.getProgress() + MIN_SIZE;
+		int height = this.height.getProgress() + MIN_SIZE;
+		String name = this.name.getText().toString().trim();
 		
-		FileInputStream fis = null;
 		StringBuilder builder = new StringBuilder();
+		Piece[][] pieces = boardEditor.getPieces();
+		
+		for(int y = 0; y < pieces[0].length; y++) {
+			for(int x = 0; x < pieces.length; x++) {
+				if(pieces[x][y] != null) {
+					builder.append(pieces[x][y].getTeam().getPrefix()).append(pieces[x][y].getName()).append(", ");
+				} else {
+					builder.append('-').append(", ");
+				}
+			}
+		}
+		
+		String content = width + "\n" + height + "\n" + builder.toString() + "\n";
+		
+		if(name.isEmpty()) {
+			Toast.makeText(this, "Please enter a name", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		
+		if(name.contains("\n")) {
+			Toast.makeText(this, "This name contains forbidden characters", Toast.LENGTH_SHORT).show();
+			return;
+		}
 		
 		try {
-			fis = openFileInput("b_" + name + ".txt");
-			InputStreamReader fus = new InputStreamReader(fis);
-			BufferedReader br = new BufferedReader(fus);
-			String line;
+			FileOutputStream stream = openFileOutput("b_" + name + ".txt", MODE_PRIVATE);
+			stream.write(content.getBytes());
+			stream.close();
 			
-			while((line = br.readLine()) != null) {
-				builder.append(line).append("\n");
-			}
+			Intent intent = new Intent();
+			intent.putExtra("name", name);
+			setResult(RESULT_OK, intent);
+			finish();
 		} catch(IOException e) {
 			e.printStackTrace();
-		} finally {
-			if(fis != null) {
-				try {
-					fis.close();
-				} catch(IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		
-		String content = builder.toString();
-		
-		String[] lines = content.split("\n");
-		int width = lines[0].split(", ").length;
-		int height = lines.length;
-		
-		widthBar.setProgress(width - SIZE_OFFSET);
-		heightBar.setProgress(height - SIZE_OFFSET);
-		
-		for(int y = 0; y < height; y++) {
-			String[] line = lines[y].split(", ");
-			for(int x = 0; x < width; x++) {
-				Team team = line[x].charAt(0) == 'b' ? Team.BLACK : Team.WHITE;
-				Piece p = Piece.createPiece(x, y, team, line[x].substring(1), null, this);
-				if(p != null) {
-					boardEditor.addPiece(p);
-				}
-			}
 		}
 	}
 	
-	/**
-	 * @return the name of the piece the user selected from the available pieces
-	 */
-	public String getSelectedPiece() {
-		return selector.getSelected().getName();
+	public void load(String name) {
+		String content = "";
+		
+		try {
+			content = getContent(openFileInput("b_" + name + ".txt"));
+		} catch(FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		String[] lines = content.split("\n");
+		
+		int width = Integer.parseInt(lines[0]);
+		int height = Integer.parseInt(lines[0]);
+		
+		this.name.setText(name);
+		this.width.setProgress(width - MIN_SIZE);
+		this.height.setProgress(height - MIN_SIZE);
+		
+		Piece[][] pieces = new Piece[width][height];
+		String[] data = lines[2].split(", ");
+		
+		for(int i = 0; i < data.length; i++) {
+			if(!data[i].equals("-")) {
+				pieces[i % width][i / width] = searchAvailablePieces(data[i]);
+			}
+		}
+		
+		boardEditor.setWidth(Integer.parseInt(lines[0]));
+		boardEditor.setHeight(Integer.parseInt(lines[1]));
+		boardEditor.setPieces(pieces);
+	}
+	
+	private Piece searchAvailablePieces(String name) {
+		for(Piece p: pieceList) {
+			for(Team t : Team.values()) {
+				if(name.equals(t.getPrefix() + p.getName())) {
+					Piece piece = p.copy();
+					
+					piece.setTeam(t);
+					
+					return piece;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	// TODO: find a more suitable place for this
+	public static String getContent(FileInputStream stream) {
+		StringBuilder builder = new StringBuilder();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+		
+		String line;
+		
+		try {
+			while((line = reader.readLine()) != null) {
+				builder.append(line).append('\n');
+			}
+			
+			reader.close();
+			stream.close();
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		
+		return builder.toString();
 	}
 }

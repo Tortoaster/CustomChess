@@ -1,6 +1,7 @@
 package com.tortoaster.customchess.chess.piece;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -16,21 +17,17 @@ import java.io.FileNotFoundException;
 public class Piece implements Comparable<Piece> {
 	
 	private static final Paint PAINT = new Paint(Paint.ANTI_ALIAS_FLAG);
-	private final Board board;
-	private int x, y, drawX1, drawY1, drawX2, drawY2, drawSize, moves = 0;
-	private Team team;
+	
+	public static final String PREFIX = "p_", SUFFIX = ".txt";
+	
+	private int x, y, drawX1, drawY1, drawX2, drawY2, drawSize, moves;
+	
 	private Kind kind;
 	
-	/**
-	 * This constructor should only be used for predefined (non-custom) pieces that do not have
-	 * their own class. Use createPiece as a more rigid alternative.
-	 *
-	 * @param x     the piece's x-coordinate
-	 * @param y     the piece's y-coordinate
-	 * @param team  the piece's color
-	 * @param kind  the kind of piece (e.g. Knight, Rook...)
-	 * @param board the board this piece is on
-	 */
+	private Team team;
+	
+	private final Board board;
+	
 	public Piece(int x, int y, Team team, Kind kind, Board board) {
 		this.x = x;
 		this.y = y;
@@ -43,35 +40,57 @@ public class Piece implements Comparable<Piece> {
 	 * @return a new piece with custom/overridden attributes if applicable
 	 */
 	public static Piece createPiece(int x, int y, Team team, String name, Board board, Context context) {
-		if(name.isEmpty()) return null;
+		Piece piece;
+		
+		if(name.startsWith(CustomPiece.PREFIX)) {
+			try {
+				context.openFileInput(Piece.PREFIX + name.substring(CustomPiece.PREFIX.length()) + Piece.SUFFIX);
+				
+				piece = new CustomPiece(x, y, team, name, board, context);
+				
+				piece.loadImage(context);
+				
+				return piece;
+			} catch(FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			
+			return null;
+		}
 		
 		switch(name) {
 			case "pawn":
-				return new Pawn(x, y, team, board);
+				piece = new Pawn(x, y, team, board);
+				
+				piece.loadImage(context);
+				
+				return piece;
 			case "king":
-				return new King(x, y, team, board);
+				piece = new King(x, y, team, board);
+				
+				piece.loadImage(context);
+				
+				return piece;
 		}
 		
-		for(Kind k : Kind.values())
-			if(k.getName() != null && k.getName().equals(name))
-				return new Piece(x, y, team, k, board);
-		
-		try {
-			context.openFileInput("p_" + name + ".txt");
-			
-			Piece p = new CustomPiece(x, y, team, name, board, context);
-			p.loadImage(context);
-			
-			return p;
-		} catch(FileNotFoundException e) {
-			e.printStackTrace();
+		for(Kind k : Kind.values()) {
+			if(k.getName().equals(name)) {
+				piece = new Piece(x, y, team, k, board);
+				
+				piece.loadImage(context);
+				
+				return piece;
+			}
 		}
 		
 		return null;
 	}
 	
-	public void update() {
+	public Piece copy() {
+		return new Piece(x, y, team, kind, board);
 	}
+	
+	public void update() {}
 	
 	public void onMove(Position to) {
 		for(Piece p : board.getPieces()) p.update();
@@ -90,6 +109,14 @@ public class Piece implements Comparable<Piece> {
 	
 	public void draw(Canvas canvas) {
 		if(kind.getBitmap(team) != null) canvas.drawBitmap(kind.getBitmap(team), null, new Rect(drawX1, drawY1, drawX2, drawY2), PAINT);
+	}
+	
+	public Bitmap getBitmap() {
+		return kind.getBitmap(team);
+	}
+	
+	public Bitmap getBitmap(Team team) {
+		return kind.getBitmap(team);
 	}
 	
 	@Override

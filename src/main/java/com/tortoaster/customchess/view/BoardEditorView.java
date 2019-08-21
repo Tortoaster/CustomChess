@@ -3,96 +3,76 @@ package com.tortoaster.customchess.view;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.RectF;
+import android.support.annotation.ColorInt;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.tortoaster.customchess.R;
-import com.tortoaster.customchess.activity.BoardEditorActivity;
+import com.tortoaster.customchess.chess.Board;
+import com.tortoaster.customchess.chess.Team;
 import com.tortoaster.customchess.chess.piece.Kind;
 import com.tortoaster.customchess.chess.piece.Piece;
-import com.tortoaster.customchess.chess.Team;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.Arrays;
 
 public class BoardEditorView extends View {
 	
-	private static Paint PAINT = new Paint();
+	private static final Paint PAINT = new Paint(Paint.ANTI_ALIAS_FLAG);
 	
-	private boolean eraser;
-	
-	private int lightColor, darkColor;
-	private int boardWidth, boardHeight;
-	private int viewWidth, viewHeight;
-	private int horizontalMargin, verticalMargin;
+	private boolean erasing;
 	
 	private float tileSize;
 	
-	private List<Piece> pieces = new ArrayList<>();
+	@ColorInt
+	private int lightColor, darkColor;
 	
-	private Team team = Team.WHITE;
+	private Piece[][] pieces;
 	
-	/**
-	 * The BoardEditorView is used to make new initial setups of boards to play with.
-	 */
+	private Piece selected;
+	
 	public BoardEditorView(Context context, @Nullable AttributeSet attrs) {
 		super(context, attrs);
 		
-		lightColor = getResources().getColor(R.color.white);
-		darkColor = getResources().getColor(R.color.darkWhite);
+		lightColor = getResources().getColor(R.color.very_light);
+		darkColor = getResources().getColor(R.color.light);
 		
-		for(Kind k : Kind.values()) {
-			k.loadImage(getContext());
-		}
-		
-		boardWidth = boardHeight = 8;
+		pieces = new Piece[1][1];
 	}
 	
 	@Override
 	public void onDraw(Canvas canvas) {
-		for(int y = 0; y < boardHeight; y++) {
-			for(int x = 0; x < boardWidth; x++) {
-				if((x + y) % 2 == 0)
-					PAINT.setColor(lightColor);
-				else
-					PAINT.setColor(darkColor);
+		for(int y = 0; y < pieces[0].length; y++) {
+			for(int x = 0; x < pieces.length; x++) {
+				if((x + y) % 2 == 0) PAINT.setColor(lightColor);
+				else PAINT.setColor(darkColor);
 				
-				canvas.drawRect(x * tileSize + horizontalMargin, y * tileSize + tileSize / 3 + verticalMargin, (x + 1) * tileSize + horizontalMargin, (y + 1) * tileSize + tileSize / 3 + verticalMargin, PAINT);
+				canvas.drawRect(x * tileSize, (y + Board.PIECE_OFFSET) * tileSize, (x + 1) * tileSize, (y + Board.PIECE_OFFSET + 1) * tileSize, PAINT);
+				
+				if(pieces[x][y] != null) canvas.drawBitmap(pieces[x][y].getBitmap(), null, new RectF(x * tileSize, y * tileSize, (x + 1) * tileSize, (y + 1) * tileSize), PAINT);
 			}
-		}
-		
-		for(Piece p : pieces) {
-			p.draw(canvas);
 		}
 	}
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
+		int x = (int) (event.getX() / tileSize);
+		int y = (int) (event.getY() / tileSize - Board.PIECE_OFFSET);
 		
-		int x = (int) ((event.getX() - horizontalMargin) / tileSize);
-		int y = (int) ((event.getY() - verticalMargin) / tileSize);
-		
-		if(event.getAction() == MotionEvent.ACTION_DOWN) {
-			eraser = getPiece(x, y) != null;
-		}
-		
-		if(x >= 0 && x < boardWidth && y >= 0 && y < boardHeight) {
-			if(eraser) {
-				Piece p = getPiece(x, y);
+		if(x >= 0 && x < pieces.length && y >= 0 && y < pieces[0].length) {
+			if(event.getAction() == MotionEvent.ACTION_DOWN) {
+				erasing = pieces[x][y] != null;
 				
-				if(p != null) {
-					pieces.remove(p);
-					
-					invalidate();
-				}
-			} else if(getPiece(x, y) == null) {
-				Piece p = Piece.createPiece(x, y, team, ((BoardEditorActivity) getContext()).getSelectedPiece(), null, getContext());
-				
-				if(p != null) addPiece(p);
+				if(erasing) pieces[x][y] = null;
+				else pieces[x][y] = selected.copy();
+			} else {
+				if(erasing) pieces[x][y] = null;
+				else if(pieces[x][y] == null) pieces[x][y] = selected.copy();
 			}
+			
+			postInvalidate();
 		}
 		
 		return true;
@@ -100,84 +80,51 @@ public class BoardEditorView extends View {
 	
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-		super.onSizeChanged(w, h, oldw, oldh);
-		
-		viewWidth = w;
-		viewHeight = h;
-		
-		recalculate();
+		tileSize = Math.min((float) w / pieces.length, h / (pieces[0].length + Board.PIECE_OFFSET));
 	}
 	
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-		super.onMeasure(widthMeasureSpec, widthMeasureSpec + (int) (tileSize / 3 * 2));
+		float tileSize = Math.min((float) MeasureSpec.getSize(widthMeasureSpec) / pieces.length, MeasureSpec.getSize(heightMeasureSpec) / (pieces[0].length + Board.PIECE_OFFSET));
+		
+		setMeasuredDimension((int) (pieces.length * tileSize), (int) ((pieces[0].length + Board.PIECE_OFFSET) * tileSize));
 	}
 	
-	private void recalculate() {
-		tileSize = (float) viewWidth / Math.max(boardWidth, boardHeight);
+	public void setWidth(int width) {
+		Piece[][] resized = new Piece[width][pieces[0].length];
 		
-		requestLayout();
-		
-		horizontalMargin = (int) (viewWidth - boardWidth * tileSize) / 2;
-		verticalMargin = (int) (viewHeight - boardHeight * tileSize) / 2;
-		
-		for(Piece p : pieces) {
-			int temp = (int) (p.getY() * tileSize + verticalMargin);
-			if(p.getName().equals("wall")) temp += tileSize / 3;
-			p.setPosition((int) (p.getX() * tileSize + horizontalMargin), temp, (int) tileSize);
+		for(int y = 0; y < resized[0].length; y++) {
+			for(int x = 0; x < Math.min(resized.length, pieces.length); x++) {
+				resized[x][y] = pieces[x][y];
+			}
 		}
 		
-		invalidate();
-	}
-	
-	public void setTeam(Team team) {
-		this.team = team;
-	}
-	
-	public void setBoardWidth(int boardWidth) {
-		if(this.boardWidth > boardWidth)
-			for(Iterator<Piece> i = pieces.iterator(); i.hasNext(); )
-				if(i.next().getX() >= boardWidth) i.remove();
+		pieces = resized;
 		
-		this.boardWidth = boardWidth;
-		recalculate();
+		requestLayout();
 	}
 	
-	public void setBoardHeight(int boardHeight) {
-		if(this.boardHeight > boardHeight)
-			for(Iterator<Piece> i = pieces.iterator(); i.hasNext(); )
-				if(i.next().getY() >= boardHeight) i.remove();
+	public void setHeight(int height) {
+		Piece[][] resized = new Piece[pieces.length][height];
 		
-		this.boardHeight = boardHeight;
-		recalculate();
+		for(int x = 0; x < resized.length; x++) {
+			resized[x] = Arrays.copyOf(pieces[x], height);
+		}
+		
+		pieces = resized;
+		
+		requestLayout();
 	}
 	
-	/**
-	 * Places a piece on the board.
-	 *
-	 * @param p the piece to be placed on the board.
-	 */
-	public void addPiece(Piece p) {
-		pieces.add(p);
-		
-		int temp = (int) (p.getY() * tileSize + verticalMargin);
-		if(p.getName().equals("wall")) temp += tileSize / 3;
-		p.setPosition((int) (p.getX() * tileSize + horizontalMargin), temp, (int) tileSize);
-		
-		invalidate();
+	public void setSelected(Piece selected) {
+		this.selected = selected;
 	}
 	
-	/**
-	 * @return the piece found at the (x,y) coordinates, or null if there's no piece there.
-	 */
-	public Piece getPiece(int x, int y) {
-		for(Piece p : pieces)
-			if(p.getX() == x && p.getY() == y) return p;
-		
-		return null;
+	public void setPieces(Piece[][] pieces) {
+		this.pieces = pieces;
 	}
 	
-	public List<Piece> getPieces() {
+	public Piece[][] getPieces() {
 		return pieces;
 	}
 }

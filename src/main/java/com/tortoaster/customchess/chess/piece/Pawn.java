@@ -28,6 +28,11 @@ public class Pawn extends Piece {
 	}
 	
 	@Override
+	public Piece copy() {
+		return new Pawn(getX(), getY(), getTeam(), getBoard());
+	}
+	
+	@Override
 	public Move[] getMoveDirections() {
 		if(getKind() == Kind.PAWN) {
 			if(getMoves() == 0) return START_MOVES;

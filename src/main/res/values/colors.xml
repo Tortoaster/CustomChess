@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<color name="black">#4a4c53</color>
-	<color name="darkBlack">#343841</color>
-	<color name="white">#eef7fa</color>
-	<color name="darkWhite">#b6bfc7</color>
+	<color name="very_light">#eef7fa</color>
+	<color name="light">#b6bfc7</color>
+	<color name="dark">#4a4c53</color>
+	<color name="very_dark">#343841</color>
 	
 	<color name="selected">#d23af274</color>
 	<color name="highlighted">#d23a8df2</color>

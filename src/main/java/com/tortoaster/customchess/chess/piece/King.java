@@ -11,11 +11,16 @@ import java.util.Collections;
 import java.util.List;
 
 public class King extends Piece {
-
+	
 	public King(int x, int y, Team team, Board board) {
 		super(x, y, team, Kind.KING, board);
 	}
-
+	
+	@Override
+	public Piece copy() {
+		return new King(getX(), getY(), getTeam(), getBoard());
+	}
+	
 	/**
 	 * Checks if the king do any Castling.
 	 *

@@ -15,7 +15,7 @@ import com.tortoaster.customchess.chess.Move;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PieceMovesView extends View implements View.OnTouchListener {
+public class PieceMovesView extends View {
 	
 	private static final int SIZE = 7, PIECE_X = 3, PIECE_Y = 3;
 	
@@ -23,7 +23,7 @@ public class PieceMovesView extends View implements View.OnTouchListener {
 	
 	private boolean jumping, repeating, erasing;
 	
-	private int tileSize, lastDeltaX, lastDeltaY;
+	private float tileSize;
 	
 	@ColorInt
 	private final int lightColor, darkColor, normalColor, jumpingColor, repeatingColor, jumpingRepeatingColor;
@@ -41,16 +41,14 @@ public class PieceMovesView extends View implements View.OnTouchListener {
 	public PieceMovesView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
 		
-		setOnTouchListener(this);
-		
-		lightColor = getResources().getColor(R.color.white);
-		darkColor = getResources().getColor(R.color.darkWhite);
+		lightColor = getResources().getColor(R.color.very_light);
+		darkColor = getResources().getColor(R.color.light);
 		normalColor = getResources().getColor(R.color.selected);
 		jumpingColor = getResources().getColor(R.color.highlighted);
 		repeatingColor = getResources().getColor(R.color.threatened);
 		jumpingRepeatingColor = getResources().getColor(R.color.marked);
 		
-		moves = translateData("");
+		moves = Move.translateData("");
 	}
 	
 	@Override
@@ -82,58 +80,29 @@ public class PieceMovesView extends View implements View.OnTouchListener {
 		}
 		
 		PAINT.setColor(darkColor);
+		
 		canvas.drawCircle((PIECE_X + 0.5f) * tileSize, (PIECE_Y + 0.5f) * tileSize, tileSize / 4f, PAINT);
 	}
 	
 	@Override
-	public boolean onTouch(View v, MotionEvent event) {
-		int deltaX, deltaY;
+	public boolean onTouchEvent(MotionEvent event) {
+		int deltaX = (int) (event.getX() / tileSize) - PIECE_X;
+		int deltaY = (int) (event.getY() / tileSize) - PIECE_Y;
 		
-		switch(event.getAction()) {
-			case MotionEvent.ACTION_DOWN:
-				deltaX = (int) (event.getX() / tileSize) - PIECE_X;
-				deltaY = (int) (event.getY() / tileSize) - PIECE_Y;
+		if((deltaX != 0 || deltaY != 0) && Math.abs(deltaX) <= 3 && Math.abs(deltaY) <= 3) {
+			Move move = new Move(deltaX, deltaY, repeating, jumping);
+			
+			if(event.getAction() == MotionEvent.ACTION_DOWN) {
+				erasing = moves.contains(move);
 				
-				if((deltaX != 0 || deltaY != 0) && (deltaX != lastDeltaX || deltaY != lastDeltaY) && deltaX <= 3 && deltaY <= 3) {
-					Move move = new Move(deltaX, deltaY, repeating, jumping);
-					
-					if(moves.contains(move)) {
-						moves.remove(move);
-						erasing = true;
-					} else {
-						moves.add(move);
-						erasing = false;
-					}
-					
-					lastDeltaX = deltaX;
-					lastDeltaY = deltaY;
-					
-					postInvalidate();
-				}
-				break;
-			case MotionEvent.ACTION_MOVE:
-				deltaX = (int) (event.getX() / tileSize) - PIECE_X;
-				deltaY = (int) (event.getY() / tileSize) - PIECE_Y;
-				
-				if((deltaX != 0 || deltaY != 0) && (deltaX != lastDeltaX || deltaY != lastDeltaY) && deltaX <= 3 && deltaY <= 3) {
-					Move move = new Move(deltaX, deltaY, repeating, jumping);
-					
-					if(erasing) {
-						moves.remove(move);
-					} else if(!moves.contains(move)) {
-						moves.add(move);
-					}
-					
-					lastDeltaX = deltaX;
-					lastDeltaY = deltaY;
-					
-					postInvalidate();
-				}
-				break;
-			case MotionEvent.ACTION_UP:
-				lastDeltaX = 0;
-				lastDeltaY = 0;
-				erasing = false;
+				if(erasing) moves.remove(move);
+				else moves.add(move);
+			} else {
+				if(erasing) moves.remove(move);
+				else if(!moves.contains(move)) moves.add(move);
+			}
+			
+			postInvalidate();
 		}
 		
 		return true;
@@ -141,7 +110,7 @@ public class PieceMovesView extends View implements View.OnTouchListener {
 	
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-		tileSize = w / SIZE;
+		tileSize = (float) w / SIZE;
 	}
 	
 	@Override
@@ -160,7 +129,7 @@ public class PieceMovesView extends View implements View.OnTouchListener {
 	}
 	
 	public void setData(String data) {
-		moves = translateData(data);
+		moves = Move.translateData(data);
 	}
 	
 	public String getData() {
@@ -171,21 +140,5 @@ public class PieceMovesView extends View implements View.OnTouchListener {
 		}
 		
 		return data.toString();
-	}
-	
-	public static List<Move> translateData(String data) {
-		List<Move> moves = new ArrayList<>();
-		
-		if(!data.isEmpty()) {
-			String[] lines = data.split(", ");
-			
-			for(String m : lines) {
-				String[] numbers = m.split(" ");
-				
-				moves.add(new Move(Integer.parseInt(numbers[0]), Integer.parseInt(numbers[1]), Integer.parseInt(numbers[2]) != 0, Integer.parseInt(numbers[3]) != 0));
-			}
-		}
-		
-		return moves;
 	}
 }

@@ -19,10 +19,10 @@ import android.widget.Toast;
 
 import com.tortoaster.customchess.R;
 import com.tortoaster.customchess.chess.Move;
-import com.tortoaster.customchess.view.PieceMovesView;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -165,11 +165,11 @@ public class PieceEditorActivity extends AppCompatActivity {
 	public void calculateValue() {
 		double score = 0;
 		
-		for(Move m : PieceMovesView.translateData(moveData)) {
+		for(Move m : Move.translateData(moveData)) {
 			score += 0.10 * Math.sqrt(m.getDeltaX() * m.getDeltaX() + m.getDeltaY() * m.getDeltaY()) * (m.isJumping() ? 1.5 : 1) * (m.isRepeating() ? 4 : 1);
 		}
 		
-		for(Move m : PieceMovesView.translateData(attackData)) {
+		for(Move m : Move.translateData(attackData)) {
 			score += 0.25 * Math.sqrt(m.getDeltaX() * m.getDeltaX() + m.getDeltaY() * m.getDeltaY()) * (m.isJumping() ? 1.5 : 1) * (m.isRepeating() ? 4 : 1);
 		}
 		
@@ -271,21 +271,13 @@ public class PieceEditorActivity extends AppCompatActivity {
 	}
 	
 	public void load(String name) {
-		StringBuilder builder = new StringBuilder();
+		String content = "";
 		
 		try {
-			FileInputStream stream = openFileInput("p_" + name + ".txt");
-			BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-			String line;
-			
-			while((line = reader.readLine()) != null) {
-				builder.append(line).append('\n');
-			}
-		} catch(IOException e) {
+			content = BoardEditorActivity.getContent(openFileInput("p_" + name + ".txt"));
+		} catch(FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		
-		String content = builder.toString();
 		
 		String[] lines = content.split("\n");
 		
